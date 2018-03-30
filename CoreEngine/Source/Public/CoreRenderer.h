@@ -20,6 +20,7 @@ public:
 
 private:
 	HRESULT CreateShaders();
+	HRESULT CreateTriangle();
 	HRESULT CreateCube();
 	void    CreateViewAndPerspective();
 
@@ -67,6 +68,8 @@ private:
 	// Direct3D device resources
 	//-----------------------------------------------------------------------------
 	//ID3DXEffect* m_pEffect;
+	ComPtr<ID3D11Buffer>            core_pTriangleVertexBuffer;
+	
 	ComPtr<ID3D11Buffer>            core_pVertexBuffer;
 	ComPtr<ID3D11Buffer>            core_pIndexBuffer;
 	ComPtr<ID3D11Buffer>            core_pConstantBuffer;
@@ -77,4 +80,3 @@ private:
 	ComPtr<ID3D11InputLayout>       core_pInputLayoutExtended;
 	
 };
-

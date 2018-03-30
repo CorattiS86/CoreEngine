@@ -2,7 +2,6 @@
 #include "CoreUtils.h"
 #include <ppltasks.h>
 
-
 using namespace std;
 using namespace DirectX;
 
@@ -31,7 +30,14 @@ void CoreRenderer::CreateDeviceDependentResources()
 	);
 
 	// Load the geometry for the spinning cube.
-	auto CreateCubeTask = CreateShadersTask.then(
+	auto CreateTriangleTask = CreateShadersTask.then(
+		[this]()
+	{
+		CreateTriangle();
+	}
+	);
+
+	auto CreateCubeTask = CreateTriangleTask.then(
 		[this]()
 	{
 		CreateCube();
@@ -143,12 +149,14 @@ void CoreRenderer::Render()
 		0
 	);
 
-	// Calling Draw tells Direct3D to start sending commands to the graphics device.
+	//// Calling Draw tells Direct3D to start sending commands to the graphics device.
 	context->DrawIndexed(
 		core_indexCount,
 		0,
 		0
 	);
+
+	
 }
 
 HRESULT CoreRenderer::CreateShaders()
@@ -301,6 +309,38 @@ HRESULT CoreRenderer::CreateShaders()
 	return hr;
 }
 
+HRESULT CoreRenderer::CreateTriangle()
+{
+	HRESULT hr = S_OK;
+	ID3D11Device *device = coreDevice->GetDevice();
+
+	VertexPositionColor TriangleVertices[] =
+	{
+		{ XMFLOAT3(-0.5f,-0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
+		{ XMFLOAT3( 0.5f,-0.5f, 0.0f), XMFLOAT3(0,   0,   1), },
+		{ XMFLOAT3( 0.0f, 0.5f, 0.0f), XMFLOAT3(0,   1,   0), },
+	};
+
+	CD3D11_BUFFER_DESC vDesc(
+		sizeof(TriangleVertices),
+		D3D11_BIND_VERTEX_BUFFER
+	);
+
+	D3D11_SUBRESOURCE_DATA vData;
+	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
+	vData.pSysMem = TriangleVertices;
+	vData.SysMemPitch = 0;
+	vData.SysMemSlicePitch = 0;
+
+	hr = device->CreateBuffer(
+		&vDesc,
+		&vData,
+		&core_pTriangleVertexBuffer
+	);
+
+	return hr;
+}
+
 HRESULT CoreRenderer::CreateCube()
 {
 	HRESULT hr = S_OK;
@@ -311,22 +351,24 @@ HRESULT CoreRenderer::CreateCube()
 	// Create cube geometry.
 	VertexPositionColor CubeVertices[] =
 	{
-		{ XMFLOAT3(-0.5f,-0.5f,-0.5f), XMFLOAT3(0,   0,   0), },
+		{ XMFLOAT3(-0.5f,-0.5f,-0.5f), XMFLOAT3(0,   0,   1), },
 		{ XMFLOAT3(-0.5f,-0.5f, 0.5f), XMFLOAT3(0,   0,   1), },
 		{ XMFLOAT3(-0.5f, 0.5f,-0.5f), XMFLOAT3(0,   1,   0), },
 		{ XMFLOAT3(-0.5f, 0.5f, 0.5f), XMFLOAT3(0,   1,   1), },
 
-		{ XMFLOAT3(0.5f,-0.5f,-0.5f), XMFLOAT3(1,   0,   0), },
-		{ XMFLOAT3(0.5f,-0.5f, 0.5f), XMFLOAT3(1,   0,   1), },
-		{ XMFLOAT3(0.5f, 0.5f,-0.5f), XMFLOAT3(1,   1,   0), },
-		{ XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT3(1,   1,   1), },
+		{ XMFLOAT3(0.5f,-0.5f,-0.5f),  XMFLOAT3(1,   0,   0), },
+		{ XMFLOAT3(0.5f,-0.5f, 0.5f),  XMFLOAT3(1,   0,   1), },
+		{ XMFLOAT3(0.5f, 0.5f,-0.5f),  XMFLOAT3(1,   1,   0), },
+		{ XMFLOAT3(0.5f, 0.5f, 0.5f),  XMFLOAT3(1,   1,   1), },
 	};
 
 	// Create vertex buffer:
 	CD3D11_BUFFER_DESC vDesc(
 		sizeof(CubeVertices),
-		D3D11_BIND_VERTEX_BUFFER
+		D3D11_BIND_VERTEX_BUFFER,
+		D3D11_USAGE_IMMUTABLE
 	);
+
 
 	D3D11_SUBRESOURCE_DATA vData;
 	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
