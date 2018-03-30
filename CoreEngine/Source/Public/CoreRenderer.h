@@ -16,10 +16,19 @@ public:
 	void CreateDeviceDependentResources();
 	void CreateWindowSizeDependentResources();
 	void Update();
+	void TranslateWorld(float axisX, float axisY, float axisZ);
+	void RotateWorld(float roll, float pitch, float yaw);
+	void ScaleWorld(float Sx, float Sy, float Sz);
+	void ResetWorld();
+
 	void Render();
 
 private:
+	
 	HRESULT CreateShaders();
+	HRESULT CreateTriangle();
+	HRESULT CreateSquare();
+	HRESULT CreateCircle();
 	HRESULT CreateCube();
 	void    CreateViewAndPerspective();
 
@@ -67,6 +76,13 @@ private:
 	// Direct3D device resources
 	//-----------------------------------------------------------------------------
 	//ID3DXEffect* m_pEffect;
+	ComPtr<ID3D11Buffer>            core_pTriangleVertexBuffer;
+	unsigned int					core_TriangleVerticesCount;
+	ComPtr<ID3D11Buffer>            core_pSquareVertexBuffer;
+	unsigned int					core_SquareVerticesCount;
+	ComPtr<ID3D11Buffer>            core_pCircleVertexBuffer;
+	unsigned int					core_CircleVerticesCount;
+
 	ComPtr<ID3D11Buffer>            core_pVertexBuffer;
 	ComPtr<ID3D11Buffer>            core_pIndexBuffer;
 	ComPtr<ID3D11Buffer>            core_pConstantBuffer;
@@ -77,4 +93,3 @@ private:
 	ComPtr<ID3D11InputLayout>       core_pInputLayoutExtended;
 	
 };
-

@@ -2,7 +2,6 @@
 #include "CoreUtils.h"
 #include <ppltasks.h>
 
-
 using namespace std;
 using namespace DirectX;
 
@@ -11,6 +10,8 @@ CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	 coreDevice(coreDevice)
 {
 	core_frameCount = 0; // init frame count
+	ResetWorld();
+
 }
 
 CoreRenderer::~CoreRenderer()
@@ -31,10 +32,24 @@ void CoreRenderer::CreateDeviceDependentResources()
 	);
 
 	// Load the geometry for the spinning cube.
-	auto CreateCubeTask = CreateShadersTask.then(
+	auto CreateTriangleTask = CreateShadersTask.then(
 		[this]()
 	{
-		CreateCube();
+		CreateTriangle();
+	}
+	);
+
+	auto CreateSquareTask = CreateTriangleTask.then(
+		[this]()
+	{
+		CreateSquare(); 
+	}
+	);
+
+	auto CreateCircleTask = CreateSquareTask.then(
+		[this]()
+	{
+		CreateCircle();
 	}
 	);
 }
@@ -47,19 +62,67 @@ void CoreRenderer::CreateWindowSizeDependentResources()
 
 void CoreRenderer::Update()
 {
-	// Rotate the cube 1 degree per frame.
+	core_frameCount++;
+
+	if (core_frameCount >= MAXUINT)  core_frameCount = 0;
+}
+
+void CoreRenderer::TranslateWorld(float axisX, float axisY, float axisZ)
+{
+	XMMATRIX translation =
+		XMMatrixTranslation(
+			axisX,
+			axisY,
+			axisZ
+		);
+
 	XMStoreFloat4x4(
 		&core_constantBufferData.world,
 		XMMatrixTranspose(
-			XMMatrixRotationY(
-				XMConvertToRadians(
-				(float)core_frameCount++
-				)
-			)
+			XMMatrixMultiply(
+				translation, 
+				XMLoadFloat4x4(&core_constantBufferData.world))
 		)
 	);
+}
 
-	if (core_frameCount == MAXUINT)  core_frameCount = 0;
+void CoreRenderer::RotateWorld(float roll, float pitch, float yaw)
+{
+	XMFLOAT3 InputAngles(roll, pitch, yaw);
+	XMVECTOR VectorAngles = XMLoadFloat3(&InputAngles);
+
+	XMMATRIX rotation = XMMatrixRotationRollPitchYawFromVector(VectorAngles);
+		
+	XMStoreFloat4x4(
+		&core_constantBufferData.world,
+		XMMatrixTranspose(
+			XMMatrixMultiply(
+				rotation,
+				XMLoadFloat4x4(&core_constantBufferData.world))
+		)
+	);
+}
+
+void CoreRenderer::ScaleWorld(float Sx, float Sy, float Sz)
+{
+	XMFLOAT3 InputScale(Sx, Sy, Sz);
+	XMVECTOR VectorAngles = XMLoadFloat3(&InputScale);
+
+	XMMATRIX scale = XMMatrixScalingFromVector(VectorAngles);
+
+	XMStoreFloat4x4(
+		&core_constantBufferData.world,
+		XMMatrixTranspose(
+			XMMatrixMultiply(
+				scale,
+				XMLoadFloat4x4(&core_constantBufferData.world))
+		)
+	);
+}
+
+void CoreRenderer::ResetWorld()
+{
+	XMStoreFloat4x4(&core_constantBufferData.world, XMMatrixIdentity());
 }
 
 
@@ -71,14 +134,7 @@ void CoreRenderer::Render()
 	ID3D11RenderTargetView* renderTarget = coreDevice->GetRenderTarget();
 	ID3D11DepthStencilView* depthStencil = coreDevice->GetDepthStencil();
 
-	context->UpdateSubresource(
-		core_pConstantBuffer.Get(),
-		0,
-		nullptr,
-		&core_constantBufferData,
-		0,
-		0
-	);
+	ID3D11Device* device = coreDevice->GetDevice();
 
 	// Clear the render target and the z-buffer.
 	const float teal[] = { 0.098f, 0.439f, 0.439f, 1.000f };
@@ -102,20 +158,6 @@ void CoreRenderer::Render()
 	// Set up the IA stage by setting the input topology and layout.
 	UINT stride = sizeof(VertexPositionColor);
 	UINT offset = 0;
-
-	context->IASetVertexBuffers(
-		0,
-		1,
-		core_pVertexBuffer.GetAddressOf(),
-		&stride,
-		&offset
-	);
-
-	context->IASetIndexBuffer(
-		core_pIndexBuffer.Get(),
-		DXGI_FORMAT_R16_UINT,
-		0
-	);
 
 	context->IASetPrimitiveTopology(
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
@@ -143,12 +185,100 @@ void CoreRenderer::Render()
 		0
 	);
 
-	// Calling Draw tells Direct3D to start sending commands to the graphics device.
-	context->DrawIndexed(
+	//// Calling Draw tells Direct3D to start sending commands to the graphics device.
+	/*context->DrawIndexed(
 		core_indexCount,
 		0,
 		0
+	);*/
+
+	static float the_time = 0.0f;
+	the_time += 3.14 / 90;
+	if (the_time >= 3.14 * 2)
+		the_time = 0.0f;
+	
+	ResetWorld();
+	ScaleWorld(0.5, 0.5, 1.0);
+	TranslateWorld(cos(the_time), sin(the_time), 0.0f);
+
+	context->UpdateSubresource(
+		core_pConstantBuffer.Get(),
+		0,
+		nullptr,
+		&core_constantBufferData,
+		0,
+		0
 	);
+
+	context->IASetVertexBuffers(
+		0,
+		1,
+		core_pTriangleVertexBuffer.GetAddressOf(),
+		&stride,
+		&offset
+	);
+
+	context->Draw(
+		core_TriangleVerticesCount,
+		0
+	);
+
+	ResetWorld();
+	ScaleWorld(0.5, 0.5, 1.0);
+	TranslateWorld(-cos(the_time), -sin(the_time), 0.0f);
+
+
+	context->UpdateSubresource(
+		core_pConstantBuffer.Get(),
+		0,
+		nullptr,
+		&core_constantBufferData,
+		0,
+		0
+	);
+
+	context->IASetVertexBuffers(
+		0,
+		1,
+		core_pSquareVertexBuffer.GetAddressOf(),
+		&stride,
+		&offset
+	);
+
+	context->Draw(
+		core_SquareVerticesCount,
+		0
+	);
+
+	ResetWorld();
+	ScaleWorld(0.5, 0.5, 1.0);
+	ScaleWorld(0.5, 0.5, 1.0);
+	TranslateWorld(cos(the_time) - 1.0 , 1.0 + sin(the_time), 0.0f);
+
+
+	context->UpdateSubresource(
+		core_pConstantBuffer.Get(),
+		0,
+		nullptr,
+		&core_constantBufferData,
+		0,
+		0
+	);
+
+	context->IASetVertexBuffers(
+		0,
+		1,
+		core_pCircleVertexBuffer.GetAddressOf(),
+		&stride,
+		&offset
+	);
+
+
+	context->Draw(
+		core_CircleVerticesCount,
+		0
+	);
+	
 }
 
 HRESULT CoreRenderer::CreateShaders()
@@ -301,6 +431,122 @@ HRESULT CoreRenderer::CreateShaders()
 	return hr;
 }
 
+HRESULT CoreRenderer::CreateTriangle()
+{
+	HRESULT hr = S_OK;
+	ID3D11Device *device = coreDevice->GetDevice();
+
+	VertexPositionColor TriangleVertices[] =
+	{
+		{ XMFLOAT3(-0.5f,-0.5f, 0.0f), XMFLOAT3(0,   1,   0), },
+		{ XMFLOAT3( 0.0f, 0.5f, 0.0f), XMFLOAT3(0,   1,   0), },
+		{ XMFLOAT3( 0.5f,-0.5f, 0.0f), XMFLOAT3(0,   1,   0), },
+	};
+
+	core_TriangleVerticesCount = 3;
+
+	CD3D11_BUFFER_DESC vDesc(
+		sizeof(TriangleVertices),
+		D3D11_BIND_VERTEX_BUFFER
+	);
+
+	D3D11_SUBRESOURCE_DATA vData;
+	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
+	vData.pSysMem = TriangleVertices;
+	vData.SysMemPitch = 0;
+	vData.SysMemSlicePitch = 0;
+
+	hr = device->CreateBuffer(
+		&vDesc,
+		&vData,
+		&core_pTriangleVertexBuffer
+	);
+
+	return hr;
+}
+
+HRESULT CoreRenderer::CreateSquare()
+{
+	HRESULT hr = S_OK;
+
+	ID3D11Device *device = coreDevice->GetDevice();
+
+	VertexPositionColor SquareVertices[] =
+	{
+		{ XMFLOAT3(-0.5f,-0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
+		{ XMFLOAT3(-0.5f, 0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
+		{ XMFLOAT3( 0.5f,-0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
+
+		{ XMFLOAT3(-0.5f, 0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
+		{ XMFLOAT3( 0.5f, 0.5f, 0.0f), XMFLOAT3(1,   0,   0),},
+		{ XMFLOAT3( 0.5f,-0.5f, 0.0f), XMFLOAT3(1,   0,   0),},
+	};
+
+	core_SquareVerticesCount = 6;
+
+	CD3D11_BUFFER_DESC vDesc(
+		sizeof(SquareVertices),
+		D3D11_BIND_VERTEX_BUFFER
+	);
+
+	D3D11_SUBRESOURCE_DATA vData;
+	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
+	vData.pSysMem = SquareVertices;
+	vData.SysMemPitch = 0;
+	vData.SysMemSlicePitch = 0;
+
+	hr = device->CreateBuffer(
+		&vDesc,
+		&vData,
+		&core_pSquareVertexBuffer
+	);
+
+	return hr;
+}
+
+HRESULT CoreRenderer::CreateCircle()
+{
+	HRESULT hr = S_OK;
+
+	ID3D11Device *device = coreDevice->GetDevice();
+
+#define CIRCLE_VERTICES_COUNT 16
+
+	core_CircleVerticesCount = CIRCLE_VERTICES_COUNT *3;
+	VertexPositionColor CircleVertices[CIRCLE_VERTICES_COUNT *3];
+
+	for (int i=0, k=0; k < CIRCLE_VERTICES_COUNT; i+=3,k++) {
+		CircleVertices[i].pos = XMFLOAT3( cos( ((2*3.14)/ CIRCLE_VERTICES_COUNT) * k ), sin(((2*3.14) / CIRCLE_VERTICES_COUNT) * k), -0.1f);
+		CircleVertices[i].color = XMFLOAT3(0, 0, 1);
+
+		CircleVertices[i+1].pos = XMFLOAT3(0.0f, 0.0f, -0.1f);
+		CircleVertices[i+1].color = XMFLOAT3(0, 0, 1);
+
+		CircleVertices[i+2].pos = XMFLOAT3(cos(((2 * 3.14) / CIRCLE_VERTICES_COUNT) * (k+1)), sin(((2 * 3.14) / CIRCLE_VERTICES_COUNT) * (k+1)), -0.1f);
+		CircleVertices[i+2].color = XMFLOAT3(0, 0, 1);
+	}
+	CircleVertices[(CIRCLE_VERTICES_COUNT-1)*3 + 2].pos = XMFLOAT3(1.0f, 0.0f, -0.1f);
+
+	CD3D11_BUFFER_DESC vDesc(
+		sizeof(CircleVertices),
+		D3D11_BIND_VERTEX_BUFFER
+	);
+
+	D3D11_SUBRESOURCE_DATA vData;
+	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
+	vData.pSysMem = CircleVertices;
+	vData.SysMemPitch = 0;
+	vData.SysMemSlicePitch = 0;
+
+	hr = device->CreateBuffer(
+		&vDesc,
+		&vData,
+		&core_pCircleVertexBuffer
+	);
+
+	return hr;
+}
+
 HRESULT CoreRenderer::CreateCube()
 {
 	HRESULT hr = S_OK;
@@ -311,22 +557,24 @@ HRESULT CoreRenderer::CreateCube()
 	// Create cube geometry.
 	VertexPositionColor CubeVertices[] =
 	{
-		{ XMFLOAT3(-0.5f,-0.5f,-0.5f), XMFLOAT3(0,   0,   0), },
+		{ XMFLOAT3(-0.5f,-0.5f,-0.5f), XMFLOAT3(0,   0,   1), },
 		{ XMFLOAT3(-0.5f,-0.5f, 0.5f), XMFLOAT3(0,   0,   1), },
 		{ XMFLOAT3(-0.5f, 0.5f,-0.5f), XMFLOAT3(0,   1,   0), },
 		{ XMFLOAT3(-0.5f, 0.5f, 0.5f), XMFLOAT3(0,   1,   1), },
 
-		{ XMFLOAT3(0.5f,-0.5f,-0.5f), XMFLOAT3(1,   0,   0), },
-		{ XMFLOAT3(0.5f,-0.5f, 0.5f), XMFLOAT3(1,   0,   1), },
-		{ XMFLOAT3(0.5f, 0.5f,-0.5f), XMFLOAT3(1,   1,   0), },
-		{ XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT3(1,   1,   1), },
+		{ XMFLOAT3(0.5f,-0.5f,-0.5f),  XMFLOAT3(1,   0,   0), },
+		{ XMFLOAT3(0.5f,-0.5f, 0.5f),  XMFLOAT3(1,   0,   1), },
+		{ XMFLOAT3(0.5f, 0.5f,-0.5f),  XMFLOAT3(1,   1,   0), },
+		{ XMFLOAT3(0.5f, 0.5f, 0.5f),  XMFLOAT3(1,   1,   1), },
 	};
 
 	// Create vertex buffer:
 	CD3D11_BUFFER_DESC vDesc(
 		sizeof(CubeVertices),
-		D3D11_BIND_VERTEX_BUFFER
+		D3D11_BIND_VERTEX_BUFFER,
+		D3D11_USAGE_IMMUTABLE
 	);
+
 
 	D3D11_SUBRESOURCE_DATA vData;
 	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
