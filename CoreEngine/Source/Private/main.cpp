@@ -13,7 +13,6 @@
 *  To enable debug log
 *-----------------------
 */
-#define CORE_DEBUG 
 
 #include "stdafx.h"
 #include "resource.h"
@@ -36,7 +35,7 @@ using namespace std;
 INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {		
 	HRESULT hr = S_OK;
-
+	
 	// Enable run-time memory check for debug builds.
 #if defined(DEBUG) | defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);

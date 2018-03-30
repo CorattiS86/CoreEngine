@@ -1,4 +1,5 @@
 #include "CoreWindow.h"
+#include "CoreTimer.h"
 #include "Resource.h"
 
 using namespace std;
@@ -68,6 +69,8 @@ HRESULT CoreWindow::CreateDesktopWindow()
 		return FALSE;
 	}
 
+	CoreTimer::getInstance().Start();
+
 	return S_OK;
 }
 
@@ -92,7 +95,7 @@ HRESULT CoreWindow::Run(
 		// Process window events.
 		// Use PeekMessage() so we can use idle time to render the scene. 
 		bGotMsg = (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE) != 0);
-
+		
 		if (bGotMsg)
 		{	
 			// Translate and dispatch the message
@@ -109,6 +112,9 @@ HRESULT CoreWindow::Run(
 
 			// Present the frame to the screen.
 			coreDevice->Present();
+
+			CoreTimer::getInstance().Tick();
+			CoreTimer::getInstance().ShowFrame(this->core_hWindow);
 		}
 	}
 

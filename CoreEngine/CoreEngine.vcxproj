@@ -88,7 +88,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;CORE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)Source\Public;$(ProjectDir)Source\Private;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -160,6 +160,7 @@
   <ItemGroup>
     <ClInclude Include="Source\Public\CoreDevice.h" />
     <ClInclude Include="Source\Public\CoreRenderer.h" />
+    <ClInclude Include="Source\Public\CoreTimer.h" />
     <ClInclude Include="Source\Public\CoreUtils.h" />
     <ClInclude Include="Source\Public\CoreWindow.h" />
     <ClInclude Include="Source\Public\Resource.h" />
@@ -169,6 +170,7 @@
   <ItemGroup>
     <ClCompile Include="Source\Private\CoreDevice.cpp" />
     <ClCompile Include="Source\Private\CoreRenderer.cpp" />
+    <ClCompile Include="Source\Private\CoreTimer.cpp" />
     <ClCompile Include="Source\Private\CoreWindow.cpp" />
     <ClCompile Include="Source\Private\main.cpp" />
     <ClCompile Include="Source\Private\stdafx.cpp" />

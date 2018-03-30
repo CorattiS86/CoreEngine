@@ -21,6 +21,7 @@ public:
 	HRESULT CreateDesktopWindow();
 
 	HWND GetWindowHandle() { return core_hWindow; };
+	WCHAR* GetWindowTitle() { return core_WindowTitle;  }
 
 	HRESULT Run(
 		shared_ptr<CoreDevice> coreDevice,
