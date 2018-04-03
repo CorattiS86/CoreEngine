@@ -82,7 +82,7 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//coreRenderer->CreateWindowSizeDependentResources();
 
 		// Run the program.
-
+		coreRenderer->SetStates();
 		hr = coreWindow->Run(coreDevice, coreRenderer);
 
 	}

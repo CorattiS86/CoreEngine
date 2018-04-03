@@ -20,7 +20,7 @@ public:
 	void RotateWorld(float roll, float pitch, float yaw);
 	void ScaleWorld(float Sx, float Sy, float Sz);
 	void ResetWorld();
-
+	void SetStates();
 	void Render();
 
 private:
@@ -108,4 +108,6 @@ private:
 	ComPtr<ID3D11InputLayout>       core_pInputLayout;
 	ComPtr<ID3D11InputLayout>       core_pInputLayoutExtended;
 	
+	ComPtr<ID3D11RasterizerState>	core_pRasterStateWireframeMode;
+	ComPtr<ID3D11RasterizerState>	core_pRasterStateFillMode;
 };

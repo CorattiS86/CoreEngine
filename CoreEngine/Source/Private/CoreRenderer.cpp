@@ -136,6 +136,32 @@ void CoreRenderer::ResetWorld()
 	XMStoreFloat4x4(&core_constantBufferData.world, XMMatrixIdentity());
 }
 
+void CoreRenderer::SetStates()
+{
+	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
+	ID3D11Device* device = coreDevice->GetDevice();
+
+	D3D11_RASTERIZER_DESC rsDesc;
+
+	ZeroMemory(&rsDesc, sizeof(D3D11_RASTERIZER_DESC));
+	rsDesc.FillMode = D3D11_FILL_WIREFRAME;
+	rsDesc.CullMode = D3D11_CULL_NONE;
+	rsDesc.FrontCounterClockwise = false;
+	rsDesc.DepthClipEnable = true;
+
+	device->CreateRasterizerState(&rsDesc, core_pRasterStateWireframeMode.GetAddressOf());
+
+	ZeroMemory(&rsDesc, sizeof(D3D11_RASTERIZER_DESC));
+	rsDesc.FillMode = D3D11_FILL_SOLID;
+	rsDesc.CullMode = D3D11_CULL_NONE;
+	rsDesc.FrontCounterClockwise = true;
+	rsDesc.DepthClipEnable = true;
+
+	device->CreateRasterizerState(&rsDesc, core_pRasterStateFillMode.GetAddressOf());
+
+	context->RSSetState(core_pRasterStateFillMode.Get());
+}
+
 void CoreRenderer::Render()
 {
 	// Use the Direct3D device context to draw.
@@ -145,6 +171,8 @@ void CoreRenderer::Render()
 	ID3D11DepthStencilView* depthStencil = coreDevice->GetDepthStencil();
 
 	ID3D11Device* device = coreDevice->GetDevice();
+
+	
 
 	// Clear the render target and the z-buffer.
 	const float teal[] = { 0.098f, 0.439f, 0.439f, 1.000f };
@@ -212,8 +240,9 @@ void CoreRenderer::Render()
 		the_time = 0.0f;
 	
 	ResetWorld();
+	RotateWorld(the_time, .0f, .0f);
 	ScaleWorld(0.5, 0.5, 1.0);
-	TranslateWorld(cos(the_time), sin(the_time), 0.0f);
+	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
 
 	context->UpdateSubresource(
 		core_pConstantBuffer.Get(),
@@ -244,7 +273,7 @@ void CoreRenderer::Render()
 		0
 	);
 
-	ResetWorld();
+	/*ResetWorld();
 	ScaleWorld(0.5, 0.5, 1.0);
 	TranslateWorld(-cos(the_time), -sin(the_time), 0.0f);
 
@@ -283,7 +312,7 @@ void CoreRenderer::Render()
 		core_CircleIndicesCount,
 		core_TriangleIndicesCount + core_SquareIndicesCount,
 		core_TriangleVerticesCount + core_SquareVerticesCount
-	);
+	);*/
 
 }
 
