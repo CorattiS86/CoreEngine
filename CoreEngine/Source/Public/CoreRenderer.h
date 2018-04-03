@@ -77,10 +77,15 @@ private:
 	//-----------------------------------------------------------------------------
 	//ID3DXEffect* m_pEffect;
 	ComPtr<ID3D11Buffer>            core_pTriangleVertexBuffer;
+	ComPtr<ID3D11Buffer>            core_pTriangleIndexBuffer;
 	unsigned int					core_TriangleVerticesCount;
+
 	ComPtr<ID3D11Buffer>            core_pSquareVertexBuffer;
+	ComPtr<ID3D11Buffer>            core_pSquareIndexBuffer;
 	unsigned int					core_SquareVerticesCount;
+
 	ComPtr<ID3D11Buffer>            core_pCircleVertexBuffer;
+	ComPtr<ID3D11Buffer>            core_pCircleIndexBuffer;
 	unsigned int					core_CircleVerticesCount;
 
 	ComPtr<ID3D11Buffer>            core_pVertexBuffer;

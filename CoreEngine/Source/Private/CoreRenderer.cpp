@@ -142,6 +142,7 @@ void CoreRenderer::Render()
 		renderTarget,
 		teal
 	);
+
 	context->ClearDepthStencilView(
 		depthStencil,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
@@ -185,12 +186,26 @@ void CoreRenderer::Render()
 		0
 	);
 
+	//context->IASetVertexBuffers(
+	//	0,
+	//	1,
+	//	core_pVertexBuffer.GetAddressOf(),
+	//	&stride,
+	//	&offset
+	//);
+
+
+	//context->IASetIndexBuffer(
+	//	core_pIndexBuffer.Get(),
+	//	DXGI_FORMAT_R16_UINT,
+	//	0
+	//);
 	//// Calling Draw tells Direct3D to start sending commands to the graphics device.
-	/*context->DrawIndexed(
-		core_indexCount,
-		0,
-		0
-	);*/
+	//context->DrawIndexed(
+	//	core_indexCount,
+	//	0,
+	//	0
+	//);
 
 	static float the_time = 0.0f;
 	the_time += 3.14 / 90;
@@ -218,10 +233,22 @@ void CoreRenderer::Render()
 		&offset
 	);
 
-	context->Draw(
-		core_TriangleVerticesCount,
+	context->IASetIndexBuffer(
+		core_pTriangleIndexBuffer.Get(),
+		DXGI_FORMAT_R16_UINT,
 		0
 	);
+	
+	context->DrawIndexed(
+		core_TriangleVerticesCount,
+		0,
+		0
+	);
+
+	//context->Draw(
+	//	core_TriangleVerticesCount,
+	//	0
+	//);
 
 	ResetWorld();
 	ScaleWorld(0.5, 0.5, 1.0);
@@ -244,11 +271,23 @@ void CoreRenderer::Render()
 		&stride,
 		&offset
 	);
-
-	context->Draw(
-		core_SquareVerticesCount,
+	
+	context->IASetIndexBuffer(
+		core_pSquareIndexBuffer.Get(),
+		DXGI_FORMAT_R16_UINT,
 		0
 	);
+	 
+	context->DrawIndexed(
+		core_SquareVerticesCount,
+		0,
+		0
+	);
+
+	//context->Draw(
+	//	core_SquareVerticesCount,
+	//	0
+	//);
 
 	ResetWorld();
 	ScaleWorld(0.5, 0.5, 1.0);
@@ -273,11 +312,22 @@ void CoreRenderer::Render()
 		&offset
 	);
 
-
-	context->Draw(
-		core_CircleVerticesCount,
+	context->IASetIndexBuffer(
+		core_pCircleIndexBuffer.Get(),
+		DXGI_FORMAT_R16_UINT,
 		0
 	);
+	 
+	context->DrawIndexed(
+		core_CircleVerticesCount,
+		0,
+		0
+	);
+
+	//context->Draw(
+	//	core_CircleVerticesCount,
+	//	0
+	//);
 	
 }
 
@@ -462,6 +512,31 @@ HRESULT CoreRenderer::CreateTriangle()
 		&core_pTriangleVertexBuffer
 	);
 
+	// Create index buffer:
+	unsigned short TriangleIndices[] =
+	{
+		0,1,2
+	};
+
+	core_TriangleVerticesCount = ARRAYSIZE(TriangleIndices);
+
+	CD3D11_BUFFER_DESC iDesc(
+		sizeof(TriangleIndices),
+		D3D11_BIND_INDEX_BUFFER
+	);
+
+	D3D11_SUBRESOURCE_DATA iData;
+	ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
+	iData.pSysMem = TriangleIndices;
+	iData.SysMemPitch = 0;
+	iData.SysMemSlicePitch = 0;
+
+	hr = device->CreateBuffer(
+		&iDesc,
+		&iData,
+		&core_pTriangleIndexBuffer
+	);
+
 	return hr;
 }
 
@@ -476,10 +551,7 @@ HRESULT CoreRenderer::CreateSquare()
 		{ XMFLOAT3(-0.5f,-0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
 		{ XMFLOAT3(-0.5f, 0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
 		{ XMFLOAT3( 0.5f,-0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
-
-		{ XMFLOAT3(-0.5f, 0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
-		{ XMFLOAT3( 0.5f, 0.5f, 0.0f), XMFLOAT3(1,   0,   0),},
-		{ XMFLOAT3( 0.5f,-0.5f, 0.0f), XMFLOAT3(1,   0,   0),},
+		{ XMFLOAT3( 0.5f, 0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
 	};
 
 	core_SquareVerticesCount = 6;
@@ -501,6 +573,32 @@ HRESULT CoreRenderer::CreateSquare()
 		&core_pSquareVertexBuffer
 	);
 
+	// Create index buffer:
+	unsigned short SquareIndices[] =
+	{
+		0,1,2,
+		2,1,3
+	};
+
+	core_SquareVerticesCount = ARRAYSIZE(SquareIndices);
+
+	CD3D11_BUFFER_DESC iDesc(
+		sizeof(SquareIndices),
+		D3D11_BIND_INDEX_BUFFER
+	);
+
+	D3D11_SUBRESOURCE_DATA iData;
+	ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
+	iData.pSysMem = SquareIndices;
+	iData.SysMemPitch = 0;
+	iData.SysMemSlicePitch = 0;
+
+	hr = device->CreateBuffer(
+		&iDesc,
+		&iData,
+		&core_pSquareIndexBuffer
+	);
+
 	return hr;
 }
 
@@ -511,21 +609,17 @@ HRESULT CoreRenderer::CreateCircle()
 	ID3D11Device *device = coreDevice->GetDevice();
 
 #define CIRCLE_VERTICES_COUNT 16
+	const float PI = 3.14f;
 
-	core_CircleVerticesCount = CIRCLE_VERTICES_COUNT *3;
-	VertexPositionColor CircleVertices[CIRCLE_VERTICES_COUNT *3];
+	VertexPositionColor CircleVertices[CIRCLE_VERTICES_COUNT];
 
-	for (int i=0, k=0; k < CIRCLE_VERTICES_COUNT; i+=3,k++) {
-		CircleVertices[i].pos = XMFLOAT3( cos( ((2*3.14)/ CIRCLE_VERTICES_COUNT) * k ), sin(((2*3.14) / CIRCLE_VERTICES_COUNT) * k), -0.1f);
-		CircleVertices[i].color = XMFLOAT3(0, 0, 1);
+	CircleVertices[0].pos = XMFLOAT3( 0.0f, 0.0f, -0.1f);
+	CircleVertices[0].color = XMFLOAT3(0, 0, 1);
 
-		CircleVertices[i+1].pos = XMFLOAT3(0.0f, 0.0f, -0.1f);
-		CircleVertices[i+1].color = XMFLOAT3(0, 0, 1);
-
-		CircleVertices[i+2].pos = XMFLOAT3(cos(((2 * 3.14) / CIRCLE_VERTICES_COUNT) * (k+1)), sin(((2 * 3.14) / CIRCLE_VERTICES_COUNT) * (k+1)), -0.1f);
-		CircleVertices[i+2].color = XMFLOAT3(0, 0, 1);
+	for (int k=1; k < CIRCLE_VERTICES_COUNT; k++) {
+		CircleVertices[k].pos = XMFLOAT3( cos( ((2 * PI)/ (CIRCLE_VERTICES_COUNT-1)) * k ), sin(((2 * PI) / (CIRCLE_VERTICES_COUNT-1)) * k), -0.1f);
+		CircleVertices[k].color = XMFLOAT3(0, 0, 1);
 	}
-	CircleVertices[(CIRCLE_VERTICES_COUNT-1)*3 + 2].pos = XMFLOAT3(1.0f, 0.0f, -0.1f);
 
 	CD3D11_BUFFER_DESC vDesc(
 		sizeof(CircleVertices),
@@ -544,6 +638,38 @@ HRESULT CoreRenderer::CreateCircle()
 		&core_pCircleVertexBuffer
 	);
 
+	// Create index buffer:
+	unsigned short CircleIndices[CIRCLE_VERTICES_COUNT * 3];
+	{
+		int i, k;
+			for (i = 0, k = 0; i < (CIRCLE_VERTICES_COUNT - 2) * 3; i += 3, k++) {
+				CircleIndices[i] = 0;
+				CircleIndices[i + 1] = k + 2;
+				CircleIndices[i + 2] = k + 1;
+			}
+		CircleIndices[i] = 0;
+		CircleIndices[i + 1] = 1;
+		CircleIndices[i + 2] = k + 1;
+
+	}
+	core_CircleVerticesCount = ARRAYSIZE(CircleIndices);
+
+	CD3D11_BUFFER_DESC iDesc(
+		sizeof(CircleIndices),
+		D3D11_BIND_INDEX_BUFFER
+	);
+
+	D3D11_SUBRESOURCE_DATA iData;
+	ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
+	iData.pSysMem = CircleIndices;
+	iData.SysMemPitch = 0;
+	iData.SysMemSlicePitch = 0;
+
+	hr = device->CreateBuffer(
+		&iDesc,
+		&iData,
+		&core_pCircleIndexBuffer
+	);
 	return hr;
 }
 
