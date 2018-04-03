@@ -136,7 +136,6 @@ void CoreRenderer::ResetWorld()
 	XMStoreFloat4x4(&core_constantBufferData.world, XMMatrixIdentity());
 }
 
-
 void CoreRenderer::Render()
 {
 	// Use the Direct3D device context to draw.
@@ -149,11 +148,21 @@ void CoreRenderer::Render()
 
 	// Clear the render target and the z-buffer.
 	const float teal[] = { 0.098f, 0.439f, 0.439f, 1.000f };
-	context->ClearRenderTargetView(
-		renderTarget,
-		teal
-	);
+	const float black[] = { 0.0f, 0.0f, 0.0f, 1.000f };
 
+	const int threshold = 0;
+	static int motionBlur = threshold;
+	motionBlur++;
+	if(motionBlur > threshold) {
+		context->ClearRenderTargetView(
+			renderTarget,
+			teal
+		);
+
+		motionBlur = 0;
+
+	}
+	
 	context->ClearDepthStencilView(
 		depthStencil,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
@@ -167,6 +176,8 @@ void CoreRenderer::Render()
 		depthStencil
 	);
 
+	context->IASetInputLayout(core_pInputLayout.Get());
+
 	// Set up the IA stage by setting the input topology and layout.
 	UINT stride = sizeof(VertexPositionColor);
 	UINT offset = 0;
@@ -175,11 +186,16 @@ void CoreRenderer::Render()
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
 	);
 
-	context->IASetInputLayout(core_pInputLayout.Get());
-
 	// Set up the vertex shader stage.
 	context->VSSetShader(
 		core_pVertexShader.Get(),
+		nullptr,
+		0
+	);
+
+	// Set up the pixel shader stage.
+	context->PSSetShader(
+		core_pPixelShader.Get(),
 		nullptr,
 		0
 	);
@@ -190,15 +206,8 @@ void CoreRenderer::Render()
 		core_pConstantBuffer.GetAddressOf()
 	);
 
-	// Set up the pixel shader stage.
-	context->PSSetShader(
-		core_pPixelShader.Get(),
-		nullptr,
-		0
-	);
-
 	static float the_time = 0.0f;
-	the_time += 3.14 / 90;
+	the_time += 3.14 / 180;
 	if (the_time >= 3.14 * 2)
 		the_time = 0.0f;
 	
