@@ -30,6 +30,8 @@ private:
 	HRESULT CreateSquare();
 	HRESULT CreateCircle();
 	HRESULT CreateCube();
+	HRESULT CreateUniqueVertexBuffer();
+	HRESULT CreateUniqueIndexBuffer();
 	void    CreateViewAndPerspective();
 
 	//-----------------------------------------------------------------------------
@@ -72,21 +74,30 @@ private:
 	unsigned int  core_indexCount;
 	unsigned int  core_frameCount;
 
+	typedef struct UNIQUE_VERTEX_DATA {
+		VertexPositionColor UniqueVertices[33];
+		unsigned short lastVertex;
+		unsigned short UniqueIndices[100];
+		unsigned short lastIndex;
+		ComPtr<ID3D11Buffer>            core_pVertexBuffer;
+		ComPtr<ID3D11Buffer>            core_pIndexBuffer;
+
+	} UniqueVertexData;
+
 	//-----------------------------------------------------------------------------
 	// Direct3D device resources
 	//-----------------------------------------------------------------------------
 	//ID3DXEffect* m_pEffect;
-	ComPtr<ID3D11Buffer>            core_pTriangleVertexBuffer;
-	ComPtr<ID3D11Buffer>            core_pTriangleIndexBuffer;
 	unsigned int					core_TriangleVerticesCount;
+	unsigned int					core_TriangleIndicesCount;
 
-	ComPtr<ID3D11Buffer>            core_pSquareVertexBuffer;
-	ComPtr<ID3D11Buffer>            core_pSquareIndexBuffer;
 	unsigned int					core_SquareVerticesCount;
+	unsigned int					core_SquareIndicesCount;
 
-	ComPtr<ID3D11Buffer>            core_pCircleVertexBuffer;
-	ComPtr<ID3D11Buffer>            core_pCircleIndexBuffer;
 	unsigned int					core_CircleVerticesCount;
+	unsigned int					core_CircleIndicesCount;
+
+	UniqueVertexData				core_UniqueVertexData;
 
 	ComPtr<ID3D11Buffer>            core_pVertexBuffer;
 	ComPtr<ID3D11Buffer>            core_pIndexBuffer;
