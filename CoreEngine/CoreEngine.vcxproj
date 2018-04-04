@@ -158,6 +158,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Object.h" />
+    <ClInclude Include="ObjectReader.h" />
     <ClInclude Include="Source\Public\CoreDevice.h" />
     <ClInclude Include="Source\Public\CoreRenderer.h" />
     <ClInclude Include="Source\Public\CoreTimer.h" />
@@ -168,6 +170,8 @@
     <ClInclude Include="Source\Public\targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Object.cpp" />
+    <ClCompile Include="ObjectReader.cpp" />
     <ClCompile Include="Source\Private\CoreDevice.cpp" />
     <ClCompile Include="Source\Private\CoreRenderer.cpp" />
     <ClCompile Include="Source\Private\CoreTimer.cpp" />

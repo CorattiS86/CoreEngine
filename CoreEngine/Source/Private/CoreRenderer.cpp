@@ -1,6 +1,10 @@
 #include "CoreRenderer.h"
 #include "CoreUtils.h"
 #include <ppltasks.h>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 using namespace DirectX;
@@ -12,8 +16,6 @@ CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	core_frameCount = 0; // init frame count
 	ResetWorld();
 	 
-	core_UniqueVertexData.lastVertex = 0;
-	core_UniqueVertexData.lastIndex = 0;
 }
 
 CoreRenderer::~CoreRenderer()
@@ -33,34 +35,10 @@ void CoreRenderer::CreateDeviceDependentResources()
 	}
 	);
 
-	// Load the geometry for the spinning cube.
-	auto CreateTriangleTask = CreateShadersTask.then(
+	auto CreateLoaderTask = Concurrency::create_task(
 		[this]()
 	{
-		CreateTriangle();
-	}
-	);
-
-	auto CreateSquareTask = CreateTriangleTask.then(
-		[this]()
-	{
-		CreateSquare(); 
-	}
-	);
-
-	auto CreateCircleTask = CreateSquareTask.then(
-		[this]()
-	{
-		CreateCircle();
-	}
-	);
-
-	auto CreateFinalTask = CreateCircleTask.then(
-		[this]()
-	{
-		CreateUniqueVertexBuffer();
-		CreateUniqueIndexBuffer();
-
+		LoadObject();
 	}
 	);
 }
@@ -139,6 +117,7 @@ void CoreRenderer::ResetWorld()
 void CoreRenderer::SetStates()
 {
 	ID3D11Device* device = coreDevice->GetDevice();
+	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
 
 	D3D11_RASTERIZER_DESC rsDesc;
 	ZeroMemory(&rsDesc, sizeof(D3D11_RASTERIZER_DESC));
@@ -147,7 +126,9 @@ void CoreRenderer::SetStates()
 	rsDesc.FrontCounterClockwise = false;
 	rsDesc.DepthClipEnable = true;
 
-	device->CreateRasterizerState(&rsDesc, &core_pRasterStateWireframeMode);
+	device->CreateRasterizerState(&rsDesc, core_pRasterStateWireframeMode.GetAddressOf());
+
+	context->RSSetState(core_pRasterStateWireframeMode.Get());
 }
 
 void CoreRenderer::Render()
@@ -159,9 +140,6 @@ void CoreRenderer::Render()
 	ID3D11DepthStencilView* depthStencil = coreDevice->GetDepthStencil();
 
 	ID3D11Device* device = coreDevice->GetDevice();
-
-	context->RSSetState(core_pRasterStateWireframeMode.Get());
-
 
 	// Clear the render target and the z-buffer.
 	const float teal[] = { 0.098f, 0.439f, 0.439f, 1.000f };
@@ -230,7 +208,7 @@ void CoreRenderer::Render()
 	
 	ResetWorld();
 	RotateWorld(.0f, the_time, .0f);
-	ScaleWorld(0.5, 0.5, 1.0);
+	ScaleWorld(0.5, 0.5, 0.5);
 	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
 
 	context->UpdateSubresource(
@@ -245,19 +223,19 @@ void CoreRenderer::Render()
 	context->IASetVertexBuffers(
 		0,
 		1,
-		core_UniqueVertexData.core_pVertexBuffer.GetAddressOf(),
+		core_pObjectVertexBuffer.GetAddressOf(),
 		&stride,
 		&offset
 	);
 
 	context->IASetIndexBuffer(
-		core_UniqueVertexData.core_pIndexBuffer.Get(),
+		core_pObjectIndexBuffer.Get(),
 		DXGI_FORMAT_R16_UINT,
 		0
 	);
 	
 	context->DrawIndexed(
-		core_TriangleIndicesCount,
+		IndicesCount,
 		0,
 		0
 	);
@@ -455,159 +433,89 @@ HRESULT CoreRenderer::CreateShaders()
 	return hr;
 }
 
-HRESULT CoreRenderer::CreateTriangle()
+HRESULT CoreRenderer::LoadObject()
 {
 	HRESULT hr = S_OK;
 
-	VertexPositionColor TriangleVertices[] =
+	VerticesCount = 0;
+	IndicesCount = 0;
+
+	ifstream inputFileStream("CubeT.obj");
+	if (!inputFileStream)
+		return -1;
+
+	string inputLine = " ";
+
+	while (!inputFileStream.eof())
 	{
-		{ XMFLOAT3(-0.5f,-0.5f, 0.0f), XMFLOAT3(0,   1,   0), },
-		{ XMFLOAT3( 0.0f, 0.5f, 0.0f), XMFLOAT3(0,   1,   0), },
-		{ XMFLOAT3( 0.5f,-0.5f, 0.0f), XMFLOAT3(0,   1,   0), },
-	};
+		getline(inputFileStream, inputLine, '\n');
 
-	core_TriangleVerticesCount = ARRAYSIZE(TriangleVertices);
+		if (inputLine[0] == 'v' && inputLine[1] == ' ')
+		{
+			 
+			istringstream iss(inputLine);
+			string vertex;
+			string x, y, z;
 
-	for (unsigned int i = core_UniqueVertexData.lastVertex; i < (core_UniqueVertexData.lastVertex + core_TriangleVerticesCount); i++) {
-		core_UniqueVertexData.UniqueVertices[i].pos = TriangleVertices[i].pos;
-		core_UniqueVertexData.UniqueVertices[i].color = TriangleVertices[i].color;
+			getline(iss, vertex, ' ');
+			getline(iss, x, ' '); getline(iss, y, ' ');	getline(iss, z, '\n');
+
+			ObjectVertices[VerticesCount].pos = XMFLOAT3(atof(x.c_str()), atof(y.c_str()), atof(z.c_str()));
+			ObjectVertices[VerticesCount].color = XMFLOAT3(1.0f, 0.0f, 0.0f);
+			
+			VerticesCount++;
+
+		}
+
+		if (inputLine[0] == 'f' && inputLine[1] == ' ')
+		{
+			 
+			istringstream iss(inputLine);
+			string face;
+			string v1, v2, v3;
+			string vt1, vt2, vt3;
+			string vn1, vn2, vn3;
+
+			getline(iss, face, ' ');
+			getline(iss, v1, '/'); getline(iss, vt1, '/'); getline(iss, vn1, ' ');
+			getline(iss, v2, '/'); getline(iss, vt2, '/'); getline(iss, vn2, ' ');
+			getline(iss, v3, '/'); getline(iss, vt3, '/'); getline(iss, vn3, '\n');
+
+			ObjectIndices[IndicesCount] = atoi(v1.c_str()) - 1;
+			++IndicesCount;
+			ObjectIndices[IndicesCount] = atoi(v2.c_str()) - 1;
+			++IndicesCount;
+			ObjectIndices[IndicesCount] = atoi(v3.c_str()) - 1;
+			++IndicesCount;
+
+		}
 	}
-	core_UniqueVertexData.lastVertex += core_TriangleVerticesCount;
 
-	// Create index buffer:
-	unsigned short TriangleIndices[] =
+	for(int j=0; j< VerticesCount; j++)
 	{
-		0,1,2
-	};
-
-	core_TriangleIndicesCount = ARRAYSIZE(TriangleIndices);
-
-	for (unsigned int i = core_UniqueVertexData.lastIndex; i < (core_UniqueVertexData.lastIndex + core_TriangleIndicesCount); i++) {
-		core_UniqueVertexData.UniqueIndices[i] = TriangleIndices[i];
+		LOG_STR_3("VERTEX POS X: %f Y: %f Z: %f ",
+			ObjectVertices[j].pos.x,
+			ObjectVertices[j].pos.y,
+			ObjectVertices[j].pos.z
+		)
 	}
-	core_UniqueVertexData.lastIndex += core_TriangleIndicesCount;
+	LOG_STR_1("VERTEX COUNT: %d ", VerticesCount)
 
-	LOG_STR_1("TRIANGLE V: %d ", ARRAYSIZE(TriangleVertices));
-	LOG_STR_1("TRIANGLE I: %d ", ARRAYSIZE(TriangleIndices));
-
-	return hr;
-}
-
-HRESULT CoreRenderer::CreateSquare()
-{
-	HRESULT hr = S_OK;
-
-	VertexPositionColor SquareVertices[] =
+	for (int j = 0; j< IndicesCount; j+=3)
 	{
-		{ XMFLOAT3(-0.5f,-0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
-		{ XMFLOAT3(-0.5f, 0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
-		{ XMFLOAT3( 0.5f,-0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
-		{ XMFLOAT3( 0.5f, 0.5f, 0.0f), XMFLOAT3(1,   0,   0), },
-	};
-
-	core_SquareVerticesCount = ARRAYSIZE(SquareVertices);
-
-	for (unsigned int i = core_UniqueVertexData.lastVertex, j=0; i < (core_UniqueVertexData.lastVertex + core_SquareVerticesCount); i++, j++) {
-		core_UniqueVertexData.UniqueVertices[i].pos = SquareVertices[j].pos;
-		core_UniqueVertexData.UniqueVertices[i].color = SquareVertices[j].color;
+		LOG_STR_3("FACE POS v1: %d v2: %d v3: %d ",
+			ObjectIndices[j],
+			ObjectIndices[j+1],
+			ObjectIndices[j+2]
+		)
 	}
-	core_UniqueVertexData.lastVertex += core_SquareVerticesCount;
-
-	// Create index buffer:
-	unsigned short SquareIndices[] =
-	{
-		0,1,2,
-		2,1,3
-	};
-
-	core_SquareIndicesCount = ARRAYSIZE(SquareIndices);
-
-	for (unsigned int i = core_UniqueVertexData.lastIndex, j=0; i < (core_UniqueVertexData.lastIndex + core_SquareIndicesCount); i++, j++) {
-		core_UniqueVertexData.UniqueIndices[i] = SquareIndices[j];
-	}
-	core_UniqueVertexData.lastIndex += core_SquareIndicesCount;
-	 
-	LOG_STR_1("SQUARE V: %d ", ARRAYSIZE(SquareVertices)); 
-	LOG_STR_1("SQUARE I: %d ", ARRAYSIZE(SquareIndices));
+	LOG_STR_1("INDEX COUNT: %d ", IndicesCount)
 	
-	return hr;
-}
-
-HRESULT CoreRenderer::CreateCircle()
-{
-	HRESULT hr = S_OK;
-
-	const int core_CircleVerticesCount = 15;
-
-	const float PI = 3.14f;
-
-	VertexPositionColor CircleVertices[core_CircleVerticesCount];
-
-	CircleVertices[0].pos = XMFLOAT3( 0.0f, 0.0f, -0.1f);
-	CircleVertices[0].color = XMFLOAT3(0, 0, 1);
-
-	for (unsigned int k=1; k < core_CircleVerticesCount; k++) {
-		CircleVertices[k].pos = XMFLOAT3( cos( ((2 * PI)/ (core_CircleVerticesCount -1)) * k ), sin(((2 * PI) / (core_CircleVerticesCount -1)) * k), -0.1f);
-		CircleVertices[k].color = XMFLOAT3(0, 0, 1);
-	}
-	
-	for (unsigned int i = core_UniqueVertexData.lastVertex, j = 0; i < (core_UniqueVertexData.lastVertex + core_CircleVerticesCount); i++, j++) {
-		core_UniqueVertexData.UniqueVertices[i].pos = CircleVertices[j].pos;
-		core_UniqueVertexData.UniqueVertices[i].color = CircleVertices[j].color;
-	}
-	core_UniqueVertexData.lastVertex += core_CircleVerticesCount;
-
-	// Create index buffer:
-	unsigned short CircleIndices[(core_CircleVerticesCount -1) * 3];
-	{
-		unsigned int i, k;
-			for (i = 0, k = 0; i < (core_CircleVerticesCount - 2) * 3; i += 3, k++) {
-				CircleIndices[i] = 0;
-				CircleIndices[i + 1] = k + 2;
-				CircleIndices[i + 2] = k + 1;
-			}
-		CircleIndices[i] = 0;
-		CircleIndices[i + 1] = 1;
-		CircleIndices[i + 2] = k + 1;
-
-	}
-	core_CircleIndicesCount = ARRAYSIZE(CircleIndices);
-
-	for (int i = core_UniqueVertexData.lastIndex, j=0; i < (core_UniqueVertexData.lastIndex + core_CircleIndicesCount); i++, j++) {
-		core_UniqueVertexData.UniqueIndices[i] = CircleIndices[j];
-	}
-	core_UniqueVertexData.lastIndex += core_CircleIndicesCount;
-
-	LOG_STR_1("CIRCLE V: %d ", ARRAYSIZE(CircleVertices));
-	LOG_STR_1("CIRCLE I: %d ", ARRAYSIZE(CircleIndices));
-
-	return hr;
-}
-
-HRESULT CoreRenderer::CreateCube()
-{
-	HRESULT hr = S_OK;
-
-	// Use the Direct3D device to load resources into graphics memory.
 	ID3D11Device* device = coreDevice->GetDevice();
-
-	// Create cube geometry.
-	VertexPositionColor CubeVertices[] =
-	{
-		{ XMFLOAT3(-0.5f,-0.5f,-0.5f), XMFLOAT3(0,   0,   1), },
-		{ XMFLOAT3(-0.5f,-0.5f, 0.5f), XMFLOAT3(0,   0,   1), },
-		{ XMFLOAT3(-0.5f, 0.5f,-0.5f), XMFLOAT3(0,   1,   0), },
-		{ XMFLOAT3(-0.5f, 0.5f, 0.5f), XMFLOAT3(0,   1,   1), },
-
-		{ XMFLOAT3(0.5f,-0.5f,-0.5f),  XMFLOAT3(1,   0,   0), },
-		{ XMFLOAT3(0.5f,-0.5f, 0.5f),  XMFLOAT3(1,   0,   1), },
-		{ XMFLOAT3(0.5f, 0.5f,-0.5f),  XMFLOAT3(1,   1,   0), },
-		{ XMFLOAT3(0.5f, 0.5f, 0.5f),  XMFLOAT3(1,   1,   1), },
-	};
 
 	// Create vertex buffer:
 	CD3D11_BUFFER_DESC vDesc(
-		sizeof(CubeVertices),
+		sizeof(ObjectVertices),
 		D3D11_BIND_VERTEX_BUFFER,
 		D3D11_USAGE_IMMUTABLE
 	);
@@ -615,117 +523,38 @@ HRESULT CoreRenderer::CreateCube()
 
 	D3D11_SUBRESOURCE_DATA vData;
 	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
-	vData.pSysMem = CubeVertices;
+	vData.pSysMem = ObjectVertices;
 	vData.SysMemPitch = 0;
 	vData.SysMemSlicePitch = 0;
 
 	hr = device->CreateBuffer(
 		&vDesc,
 		&vData,
-		&core_pVertexBuffer
+		&core_pObjectVertexBuffer
 	);
 
-	// Create index buffer:
-	unsigned short CubeIndices[] =
-	{
-		0,2,1, // -x
-		1,2,3,
-
-		4,5,6, // +x
-		5,7,6,
-
-		0,1,5, // -y
-		0,5,4,
-
-		2,6,7, // +y
-		2,7,3,
-
-		0,4,6, // -z
-		0,6,2,
-
-		1,3,7, // +z
-		1,7,5,
-	};
-
-	core_indexCount = ARRAYSIZE(CubeIndices);
-
+	//create index buffer
 	CD3D11_BUFFER_DESC iDesc(
-		sizeof(CubeIndices),
+		sizeof(ObjectIndices),
 		D3D11_BIND_INDEX_BUFFER
 	);
 
 	D3D11_SUBRESOURCE_DATA iData;
 	ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
-	iData.pSysMem = CubeIndices;
+	iData.pSysMem = ObjectIndices;
 	iData.SysMemPitch = 0;
 	iData.SysMemSlicePitch = 0;
 
 	hr = device->CreateBuffer(
 		&iDesc,
 		&iData,
-		&core_pIndexBuffer
+		&core_pObjectIndexBuffer
 	);
 
 	return hr;
 }
 
-HRESULT CoreRenderer::CreateUniqueVertexBuffer()
-{
-	HRESULT hr;
 
-	ID3D11Device* device = coreDevice->GetDevice();
-
-	CD3D11_BUFFER_DESC vDesc(
-		sizeof(core_UniqueVertexData.UniqueVertices),
-		D3D11_BIND_VERTEX_BUFFER,
-		D3D11_USAGE_IMMUTABLE
-	);
-
-
-	D3D11_SUBRESOURCE_DATA vData;
-	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
-	vData.pSysMem = core_UniqueVertexData.UniqueVertices;
-	vData.SysMemPitch = 0;
-	vData.SysMemSlicePitch = 0;
-
-	hr = device->CreateBuffer(
-		&vDesc,
-		&vData,
-		&core_UniqueVertexData.core_pVertexBuffer
-	);
-
-	for (int i = 0; i < core_UniqueVertexData.lastVertex; i++) {
-		LOG_STR_3("POSITION: %f %f %f", core_UniqueVertexData.UniqueVertices[i].pos.x, core_UniqueVertexData.UniqueVertices[i].pos.y, core_UniqueVertexData.UniqueVertices[i].pos.z)
-		LOG_STR_3("COLOR: %f %f %f", core_UniqueVertexData.UniqueVertices[i].color.x, core_UniqueVertexData.UniqueVertices[i].color.y, core_UniqueVertexData.UniqueVertices[i].color.z)
-	}
-	return hr;
-}
-
-HRESULT CoreRenderer::CreateUniqueIndexBuffer()
-{
-	HRESULT hr;
-
-	ID3D11Device* device = coreDevice->GetDevice();
-
-	CD3D11_BUFFER_DESC iDesc(
-		sizeof(core_UniqueVertexData.UniqueIndices),
-		D3D11_BIND_INDEX_BUFFER
-	);
-
-	D3D11_SUBRESOURCE_DATA iData;
-	ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
-	iData.pSysMem = core_UniqueVertexData.UniqueIndices;
-	iData.SysMemPitch = 0;
-	iData.SysMemSlicePitch = 0;
-
-	hr = device->CreateBuffer(
-		&iDesc,
-		&iData,
-		&core_UniqueVertexData.core_pIndexBuffer
-	);
-
-	return hr;
-}
 
 void CoreRenderer::CreateViewAndPerspective()
 {
