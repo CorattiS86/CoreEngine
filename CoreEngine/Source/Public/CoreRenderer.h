@@ -29,6 +29,7 @@ private:
 	HRESULT CreateTriangle();
 	HRESULT CreateSquare();
 	HRESULT CreateCircle();
+
 	HRESULT CreateCube();
 	HRESULT CreateUniqueVertexBuffer();
 	HRESULT CreateUniqueIndexBuffer();
@@ -88,6 +89,7 @@ private:
 	// Direct3D device resources
 	//-----------------------------------------------------------------------------
 	//ID3DXEffect* m_pEffect;
+
 	unsigned int					core_TriangleVerticesCount;
 	unsigned int					core_TriangleIndicesCount;
 
@@ -108,6 +110,8 @@ private:
 	ComPtr<ID3D11InputLayout>       core_pInputLayout;
 	ComPtr<ID3D11InputLayout>       core_pInputLayoutExtended;
 	
+
 	ComPtr<ID3D11RasterizerState>	core_pRasterStateWireframeMode;
 	ComPtr<ID3D11RasterizerState>	core_pRasterStateFillMode;
+
 };

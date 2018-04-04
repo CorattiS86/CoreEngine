@@ -138,28 +138,16 @@ void CoreRenderer::ResetWorld()
 
 void CoreRenderer::SetStates()
 {
-	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
 	ID3D11Device* device = coreDevice->GetDevice();
 
 	D3D11_RASTERIZER_DESC rsDesc;
-
 	ZeroMemory(&rsDesc, sizeof(D3D11_RASTERIZER_DESC));
 	rsDesc.FillMode = D3D11_FILL_WIREFRAME;
 	rsDesc.CullMode = D3D11_CULL_NONE;
 	rsDesc.FrontCounterClockwise = false;
 	rsDesc.DepthClipEnable = true;
 
-	device->CreateRasterizerState(&rsDesc, core_pRasterStateWireframeMode.GetAddressOf());
-
-	ZeroMemory(&rsDesc, sizeof(D3D11_RASTERIZER_DESC));
-	rsDesc.FillMode = D3D11_FILL_SOLID;
-	rsDesc.CullMode = D3D11_CULL_NONE;
-	rsDesc.FrontCounterClockwise = true;
-	rsDesc.DepthClipEnable = true;
-
-	device->CreateRasterizerState(&rsDesc, core_pRasterStateFillMode.GetAddressOf());
-
-	context->RSSetState(core_pRasterStateFillMode.Get());
+	device->CreateRasterizerState(&rsDesc, &core_pRasterStateWireframeMode);
 }
 
 void CoreRenderer::Render()
@@ -172,7 +160,8 @@ void CoreRenderer::Render()
 
 	ID3D11Device* device = coreDevice->GetDevice();
 
-	
+	context->RSSetState(core_pRasterStateWireframeMode.Get());
+
 
 	// Clear the render target and the z-buffer.
 	const float teal[] = { 0.098f, 0.439f, 0.439f, 1.000f };
@@ -240,7 +229,7 @@ void CoreRenderer::Render()
 		the_time = 0.0f;
 	
 	ResetWorld();
-	RotateWorld(the_time, .0f, .0f);
+	RotateWorld(.0f, the_time, .0f);
 	ScaleWorld(0.5, 0.5, 1.0);
 	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
 
