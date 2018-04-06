@@ -1,6 +1,9 @@
 #pragma once
 
 #include "CoreDevice.h"
+#include "CoreCommon.h"
+#include "Object.h"
+
 #include <memory>
 #include <DirectXMath.h>
 
@@ -22,74 +25,31 @@ public:
 	void ResetWorld();
 	void SetStates();
 	void Render();
+	void RenderObject(Object *obj);
 
 private:
 	
 	HRESULT CreateShaders();
 
-	HRESULT LoadObject();
+	HRESULT CreateObjectBuffer(Object *obj);
 
 	void    CreateViewAndPerspective();
 
+	Object *mObject;
 	//-----------------------------------------------------------------------------
 	// Pointer to device resource manager
 	//-----------------------------------------------------------------------------
 	shared_ptr<CoreDevice> coreDevice;
 
-	//-----------------------------------------------------------------------------
-	// Variables for rendering the cube
-	//-----------------------------------------------------------------------------
-	typedef struct _constantBufferStruct {
-		XMFLOAT4X4 world;
-		XMFLOAT4X4 view;
-		XMFLOAT4X4 projection;
-	} ConstantBufferStruct;
-
-	// Assert that the constant buffer remains 16-byte aligned.
-	static_assert((sizeof(ConstantBufferStruct) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
-
-	//-----------------------------------------------------------------------------
-	// Per-vertex data
-	//-----------------------------------------------------------------------------
-	typedef struct VERTEX_POSITION_COLOR
-	{
-		XMFLOAT3 pos;
-		XMFLOAT3 color;
-	} VertexPositionColor;
-
-	//-----------------------------------------------------------------------------
-	// Per-vertex data (extended)
-	//-----------------------------------------------------------------------------
-	typedef struct VERTEX_POSITION_NORMAL_TANGENT
-	{
-		XMFLOAT3 pos;
-		XMFLOAT3 normal;
-		XMFLOAT3 tangent;
-	} VertexPositionColorTangent;
-
+	
 	ConstantBufferStruct core_constantBufferData;
 	unsigned int  core_indexCount;
 	unsigned int  core_frameCount;
-
-	typedef struct UNIQUE_VERTEX_DATA {
-		VertexPositionColor UniqueVertices[33];
-		unsigned short lastVertex;
-		unsigned short UniqueIndices[100];
-		unsigned short lastIndex;
-		ComPtr<ID3D11Buffer>            core_pVertexBuffer;
-		ComPtr<ID3D11Buffer>            core_pIndexBuffer;
-
-	} UniqueVertexData;
 
 	//-----------------------------------------------------------------------------
 	// Direct3D device resources
 	//-----------------------------------------------------------------------------
 	//ID3DXEffect* m_pEffect;
-
-	VertexPositionColor				ObjectVertices[100];
-	unsigned int					VerticesCount;
-	unsigned short					ObjectIndices[100];
-	unsigned int					IndicesCount;
 
 	ComPtr<ID3D11Buffer>            core_pObjectVertexBuffer;
 	ComPtr<ID3D11Buffer>            core_pObjectIndexBuffer;

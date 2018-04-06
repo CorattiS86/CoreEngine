@@ -16,13 +16,14 @@ CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	core_frameCount = 0; // init frame count
 	ResetWorld();
 	 
+	mObject = new Object();
+	mObject->LoadObjectFromFile("CubeT.obj");
+	CreateObjectBuffer(mObject);
 }
 
 CoreRenderer::~CoreRenderer()
 {
-	// ComPtr will clean up references for us. But be careful to release
-	// references to anything you don't need whenever you call Flush or Trim.
-	// As always, clean up your system (CPU) memory resources before exit.
+	delete mObject;
 }
 
 void CoreRenderer::CreateDeviceDependentResources()
@@ -35,12 +36,6 @@ void CoreRenderer::CreateDeviceDependentResources()
 	}
 	);
 
-	auto CreateLoaderTask = Concurrency::create_task(
-		[this]()
-	{
-		LoadObject();
-	}
-	);
 }
 
 void CoreRenderer::CreateWindowSizeDependentResources()
@@ -129,6 +124,7 @@ void CoreRenderer::SetStates()
 	device->CreateRasterizerState(&rsDesc, core_pRasterStateWireframeMode.GetAddressOf());
 
 	context->RSSetState(core_pRasterStateWireframeMode.Get());
+	//context->RSSetState(0);
 }
 
 void CoreRenderer::Render()
@@ -173,14 +169,6 @@ void CoreRenderer::Render()
 
 	context->IASetInputLayout(core_pInputLayout.Get());
 
-	// Set up the IA stage by setting the input topology and layout.
-	UINT stride = sizeof(VertexPositionColor);
-	UINT offset = 0;
-
-	context->IASetPrimitiveTopology(
-		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
-	);
-
 	// Set up the vertex shader stage.
 	context->VSSetShader(
 		core_pVertexShader.Get(),
@@ -195,6 +183,13 @@ void CoreRenderer::Render()
 		0
 	);
 
+	RenderObject(mObject);
+}
+
+void CoreRenderer::RenderObject(Object *obj)
+{
+	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
+
 	context->VSSetConstantBuffers(
 		0,
 		1,
@@ -205,7 +200,7 @@ void CoreRenderer::Render()
 	the_time += 3.14 / 180;
 	if (the_time >= 3.14 * 2)
 		the_time = 0.0f;
-	
+
 	ResetWorld();
 	RotateWorld(.0f, the_time, .0f);
 	ScaleWorld(0.5, 0.5, 0.5);
@@ -218,6 +213,14 @@ void CoreRenderer::Render()
 		&core_constantBufferData,
 		0,
 		0
+	);
+
+	// Set up the IA stage by setting the input topology and layout.
+	UINT stride = sizeof(VertexPositionColor);
+	UINT offset = 0;
+
+	context->IASetPrimitiveTopology(
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
 	);
 
 	context->IASetVertexBuffers(
@@ -233,54 +236,12 @@ void CoreRenderer::Render()
 		DXGI_FORMAT_R16_UINT,
 		0
 	);
-	
+
 	context->DrawIndexed(
-		IndicesCount,
+		obj->IndicesCount,
 		0,
 		0
 	);
-
-	/*ResetWorld();
-	ScaleWorld(0.5, 0.5, 1.0);
-	TranslateWorld(-cos(the_time), -sin(the_time), 0.0f);
-
-
-	context->UpdateSubresource(
-		core_pConstantBuffer.Get(),
-		0,
-		nullptr,
-		&core_constantBufferData,
-		0,
-		0
-	);
-
-	context->DrawIndexed(
-		core_SquareIndicesCount,
-		core_TriangleIndicesCount,
-		core_TriangleVerticesCount
-	);
-
-	ResetWorld();
-	ScaleWorld(0.5, 0.5, 1.0);
-	ScaleWorld(0.5, 0.5, 1.0);
-	TranslateWorld(cos(the_time) - 1.0 , 1.0 + sin(the_time), 0.0f);
-
-
-	context->UpdateSubresource(
-		core_pConstantBuffer.Get(),
-		0,
-		nullptr,
-		&core_constantBufferData,
-		0,
-		0
-	);
- 
-	context->DrawIndexed(
-		core_CircleIndicesCount,
-		core_TriangleIndicesCount + core_SquareIndicesCount,
-		core_TriangleVerticesCount + core_SquareVerticesCount
-	);*/
-
 }
 
 HRESULT CoreRenderer::CreateShaders()
@@ -433,89 +394,15 @@ HRESULT CoreRenderer::CreateShaders()
 	return hr;
 }
 
-HRESULT CoreRenderer::LoadObject()
+HRESULT CoreRenderer::CreateObjectBuffer(Object *obj)
 {
-	HRESULT hr = S_OK;
-
-	VerticesCount = 0;
-	IndicesCount = 0;
-
-	ifstream inputFileStream("CubeT.obj");
-	if (!inputFileStream)
-		return -1;
-
-	string inputLine = " ";
-
-	while (!inputFileStream.eof())
-	{
-		getline(inputFileStream, inputLine, '\n');
-
-		if (inputLine[0] == 'v' && inputLine[1] == ' ')
-		{
-			 
-			istringstream iss(inputLine);
-			string vertex;
-			string x, y, z;
-
-			getline(iss, vertex, ' ');
-			getline(iss, x, ' '); getline(iss, y, ' ');	getline(iss, z, '\n');
-
-			ObjectVertices[VerticesCount].pos = XMFLOAT3(atof(x.c_str()), atof(y.c_str()), atof(z.c_str()));
-			ObjectVertices[VerticesCount].color = XMFLOAT3(1.0f, 0.0f, 0.0f);
-			
-			VerticesCount++;
-
-		}
-
-		if (inputLine[0] == 'f' && inputLine[1] == ' ')
-		{
-			 
-			istringstream iss(inputLine);
-			string face;
-			string v1, v2, v3;
-			string vt1, vt2, vt3;
-			string vn1, vn2, vn3;
-
-			getline(iss, face, ' ');
-			getline(iss, v1, '/'); getline(iss, vt1, '/'); getline(iss, vn1, ' ');
-			getline(iss, v2, '/'); getline(iss, vt2, '/'); getline(iss, vn2, ' ');
-			getline(iss, v3, '/'); getline(iss, vt3, '/'); getline(iss, vn3, '\n');
-
-			ObjectIndices[IndicesCount] = atoi(v1.c_str()) - 1;
-			++IndicesCount;
-			ObjectIndices[IndicesCount] = atoi(v2.c_str()) - 1;
-			++IndicesCount;
-			ObjectIndices[IndicesCount] = atoi(v3.c_str()) - 1;
-			++IndicesCount;
-
-		}
-	}
-
-	for(int j=0; j< VerticesCount; j++)
-	{
-		LOG_STR_3("VERTEX POS X: %f Y: %f Z: %f ",
-			ObjectVertices[j].pos.x,
-			ObjectVertices[j].pos.y,
-			ObjectVertices[j].pos.z
-		)
-	}
-	LOG_STR_1("VERTEX COUNT: %d ", VerticesCount)
-
-	for (int j = 0; j< IndicesCount; j+=3)
-	{
-		LOG_STR_3("FACE POS v1: %d v2: %d v3: %d ",
-			ObjectIndices[j],
-			ObjectIndices[j+1],
-			ObjectIndices[j+2]
-		)
-	}
-	LOG_STR_1("INDEX COUNT: %d ", IndicesCount)
+	HRESULT hr = S_OK;	
 	
 	ID3D11Device* device = coreDevice->GetDevice();
 
 	// Create vertex buffer:
 	CD3D11_BUFFER_DESC vDesc(
-		sizeof(ObjectVertices),
+		sizeof(obj->ObjectVertices),
 		D3D11_BIND_VERTEX_BUFFER,
 		D3D11_USAGE_IMMUTABLE
 	);
@@ -523,7 +410,7 @@ HRESULT CoreRenderer::LoadObject()
 
 	D3D11_SUBRESOURCE_DATA vData;
 	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
-	vData.pSysMem = ObjectVertices;
+	vData.pSysMem = obj->ObjectVertices;
 	vData.SysMemPitch = 0;
 	vData.SysMemSlicePitch = 0;
 
@@ -535,13 +422,13 @@ HRESULT CoreRenderer::LoadObject()
 
 	//create index buffer
 	CD3D11_BUFFER_DESC iDesc(
-		sizeof(ObjectIndices),
+		sizeof(obj->ObjectIndices),
 		D3D11_BIND_INDEX_BUFFER
 	);
 
 	D3D11_SUBRESOURCE_DATA iData;
 	ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
-	iData.pSysMem = ObjectIndices;
+	iData.pSysMem = obj->ObjectIndices;
 	iData.SysMemPitch = 0;
 	iData.SysMemSlicePitch = 0;
 

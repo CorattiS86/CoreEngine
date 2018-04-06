@@ -42,10 +42,10 @@
     <ClInclude Include="Source\Public\CoreTimer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectReader.h">
+    <ClInclude Include="Source\Public\Object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Object.h">
+    <ClInclude Include="Source\Public\CoreCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -68,10 +68,7 @@
     <ClCompile Include="Source\Private\CoreTimer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Object.cpp">
+    <ClCompile Include="Source\Private\Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -90,6 +87,12 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\CorePixelShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="CoreLighting.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Material.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

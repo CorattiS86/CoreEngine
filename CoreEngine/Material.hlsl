@@ -1,4 +1,8 @@
-float4 main( float4 pos : POSITION ) : SV_POSITION
+struct Material
 {
-	return pos;
-}
+	float4	Ambient;
+	float4	Diffuse;
+	float3	Specular; float SpecPower;
+
+
+};

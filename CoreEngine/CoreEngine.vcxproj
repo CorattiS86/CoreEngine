@@ -158,25 +158,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Object.h" />
-    <ClInclude Include="ObjectReader.h" />
+    <ClInclude Include="Source\Public\CoreCommon.h" />
     <ClInclude Include="Source\Public\CoreDevice.h" />
     <ClInclude Include="Source\Public\CoreRenderer.h" />
     <ClInclude Include="Source\Public\CoreTimer.h" />
     <ClInclude Include="Source\Public\CoreUtils.h" />
     <ClInclude Include="Source\Public\CoreWindow.h" />
+    <ClInclude Include="Source\Public\Object.h" />
     <ClInclude Include="Source\Public\Resource.h" />
     <ClInclude Include="Source\Public\stdafx.h" />
     <ClInclude Include="Source\Public\targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Object.cpp" />
-    <ClCompile Include="ObjectReader.cpp" />
     <ClCompile Include="Source\Private\CoreDevice.cpp" />
     <ClCompile Include="Source\Private\CoreRenderer.cpp" />
     <ClCompile Include="Source\Private\CoreTimer.cpp" />
     <ClCompile Include="Source\Private\CoreWindow.cpp" />
     <ClCompile Include="Source\Private\main.cpp" />
+    <ClCompile Include="Source\Private\Object.cpp" />
     <ClCompile Include="Source\Private\stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -186,6 +185,22 @@
     <ResourceCompile Include="Resources\CoreEngine.rc" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="CoreLighting.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Material.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Shaders\CorePixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
