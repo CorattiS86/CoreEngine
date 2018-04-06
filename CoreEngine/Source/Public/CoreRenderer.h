@@ -26,13 +26,9 @@ public:
 private:
 	
 	HRESULT CreateShaders();
-	HRESULT CreateTriangle();
-	HRESULT CreateSquare();
-	HRESULT CreateCircle();
 
-	HRESULT CreateCube();
-	HRESULT CreateUniqueVertexBuffer();
-	HRESULT CreateUniqueIndexBuffer();
+	HRESULT LoadObject();
+
 	void    CreateViewAndPerspective();
 
 	//-----------------------------------------------------------------------------
@@ -90,19 +86,14 @@ private:
 	//-----------------------------------------------------------------------------
 	//ID3DXEffect* m_pEffect;
 
-	unsigned int					core_TriangleVerticesCount;
-	unsigned int					core_TriangleIndicesCount;
+	VertexPositionColor				ObjectVertices[100];
+	unsigned int					VerticesCount;
+	unsigned short					ObjectIndices[100];
+	unsigned int					IndicesCount;
 
-	unsigned int					core_SquareVerticesCount;
-	unsigned int					core_SquareIndicesCount;
-
-	unsigned int					core_CircleVerticesCount;
-	unsigned int					core_CircleIndicesCount;
-
-	UniqueVertexData				core_UniqueVertexData;
-
-	ComPtr<ID3D11Buffer>            core_pVertexBuffer;
-	ComPtr<ID3D11Buffer>            core_pIndexBuffer;
+	ComPtr<ID3D11Buffer>            core_pObjectVertexBuffer;
+	ComPtr<ID3D11Buffer>            core_pObjectIndexBuffer;
+	
 	ComPtr<ID3D11Buffer>            core_pConstantBuffer;
 
 	ComPtr<ID3D11VertexShader>      core_pVertexShader;
