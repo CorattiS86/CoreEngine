@@ -15,15 +15,16 @@ CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 {
 	core_frameCount = 0; // init frame count
 	ResetWorld();
-	 
-	mObject = new Object();
-	mObject->LoadObjectFromFile("CubeT.obj");
-	CreateObjectBuffer(mObject);
+	
+	Object cubeObj("CubeT.obj");
+	CreateObjectBuffer(&cubeObj);
+
+	Object monkeyObj("Monkey.obj");
+	CreateObjectBuffer(&monkeyObj);
 }
 
 CoreRenderer::~CoreRenderer()
 {
-	delete mObject;
 }
 
 void CoreRenderer::CreateDeviceDependentResources()
@@ -183,10 +184,14 @@ void CoreRenderer::Render()
 		0
 	);
 
-	RenderObject(mObject);
+	for (auto& obj : vObjectBuffer)
+	{
+		RenderObjects(&obj);
+	}
+
 }
 
-void CoreRenderer::RenderObject(Object *obj)
+void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 {
 	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
 
@@ -202,8 +207,10 @@ void CoreRenderer::RenderObject(Object *obj)
 		the_time = 0.0f;
 
 	ResetWorld();
-	RotateWorld(.0f, the_time, .0f);
-	ScaleWorld(0.5, 0.5, 0.5);
+	TranslateWorld(0.0f, -1.0f, -5.0f);
+	//RotateWorld(0.0f, the_time, 0.0f);
+	
+	//ScaleWorld(0.5, 0.5, 0.5);
 	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
 
 	context->UpdateSubresource(
@@ -226,19 +233,19 @@ void CoreRenderer::RenderObject(Object *obj)
 	context->IASetVertexBuffers(
 		0,
 		1,
-		core_pObjectVertexBuffer.GetAddressOf(),
+		objBuffer->objectVertexBuffer.GetAddressOf(),
 		&stride,
 		&offset
 	);
 
 	context->IASetIndexBuffer(
-		core_pObjectIndexBuffer.Get(),
+		objBuffer->objectIndexBuffer.Get(),
 		DXGI_FORMAT_R16_UINT,
 		0
 	);
 
 	context->DrawIndexed(
-		obj->IndicesCount,
+		objBuffer->indicesCount,
 		0,
 		0
 	);
@@ -399,6 +406,7 @@ HRESULT CoreRenderer::CreateObjectBuffer(Object *obj)
 	HRESULT hr = S_OK;	
 	
 	ID3D11Device* device = coreDevice->GetDevice();
+	coreObjectBuffer objBuffer;
 
 	// Create vertex buffer:
 	CD3D11_BUFFER_DESC vDesc(
@@ -417,8 +425,10 @@ HRESULT CoreRenderer::CreateObjectBuffer(Object *obj)
 	hr = device->CreateBuffer(
 		&vDesc,
 		&vData,
-		&core_pObjectVertexBuffer
+		&objBuffer.objectVertexBuffer
 	);
+
+	objBuffer.verticesCount = obj->VerticesCount;
 
 	//create index buffer
 	CD3D11_BUFFER_DESC iDesc(
@@ -435,8 +445,12 @@ HRESULT CoreRenderer::CreateObjectBuffer(Object *obj)
 	hr = device->CreateBuffer(
 		&iDesc,
 		&iData,
-		&core_pObjectIndexBuffer
+		&objBuffer.objectIndexBuffer
 	);
+
+	objBuffer.indicesCount = obj->IndicesCount;
+
+	vObjectBuffer.push_back(objBuffer);
 
 	return hr;
 }

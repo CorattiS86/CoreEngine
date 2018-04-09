@@ -3,12 +3,21 @@
 #include "CoreDevice.h"
 #include "CoreCommon.h"
 #include "Object.h"
-
+#include <vector>
 #include <memory>
 #include <DirectXMath.h>
 
 using namespace std;
 using namespace DirectX;
+
+
+typedef struct CORE_OBJECT_BUFFER
+{
+	ComPtr<ID3D11Buffer>    objectVertexBuffer;
+	unsigned int			verticesCount;
+	ComPtr<ID3D11Buffer>    objectIndexBuffer;
+	unsigned int			indicesCount;
+} coreObjectBuffer;
 
 class CoreRenderer
 {
@@ -25,7 +34,7 @@ public:
 	void ResetWorld();
 	void SetStates();
 	void Render();
-	void RenderObject(Object *obj);
+	void RenderObjects(coreObjectBuffer *objBuffer);
 
 private:
 	
@@ -35,7 +44,8 @@ private:
 
 	void    CreateViewAndPerspective();
 
-	Object *mObject;
+	vector<coreObjectBuffer> vObjectBuffer;
+
 	//-----------------------------------------------------------------------------
 	// Pointer to device resource manager
 	//-----------------------------------------------------------------------------
@@ -51,8 +61,7 @@ private:
 	//-----------------------------------------------------------------------------
 	//ID3DXEffect* m_pEffect;
 
-	ComPtr<ID3D11Buffer>            core_pObjectVertexBuffer;
-	ComPtr<ID3D11Buffer>            core_pObjectIndexBuffer;
+	
 	
 	ComPtr<ID3D11Buffer>            core_pConstantBuffer;
 

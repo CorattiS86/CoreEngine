@@ -7,13 +7,13 @@
 
 using namespace std;
 
-Object::Object() :
+Object::Object(const char *filename) :
 	VerticesCount(0),
 	IndicesCount(0),
 	bIsLoaded(false),
 	fileName(nullptr)
 {
-
+	LoadObjectFromFile(filename);
 }
 
 
@@ -22,13 +22,13 @@ Object::~Object()
 
 }
 
-void Object::LoadObjectFromFile(const char *fileName)
+void Object::LoadObjectFromFile(const char *filename)
 {
 	VerticesCount	= 0;
 	IndicesCount	= 0;
 	bIsLoaded		= false;
 
-	ifstream inputFileStream(fileName);
+	ifstream inputFileStream(filename);
 	if (!inputFileStream)
 		return;			// TODO: add throw exception
 

@@ -5,10 +5,9 @@ class Object
 {
 
 public:
-	Object();
+	Object(const char *filename);
 	~Object();
 
-	void LoadObjectFromFile(const char* filename);
 	bool IsLoaded() { return bIsLoaded; }
 
 	VertexPositionColor		ObjectVertices[1000];
@@ -18,8 +17,9 @@ public:
 
 private:
 
-	bool					bIsLoaded;
+	void LoadObjectFromFile(const char* filename);
 
+	bool					bIsLoaded;
 	const char*				fileName;
 
 };
