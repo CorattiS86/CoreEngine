@@ -17,9 +17,11 @@ CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	ResetWorld();
 	
 	Object cubeObj("CubeT.obj");
+	cubeObj.SetColor(1.0f, 0.0f, 0.0f);
 	CreateObjectBuffer(&cubeObj);
 
 	Object monkeyObj("Monkey.obj");
+	monkeyObj.SetColor(0.0f, 1.0f, 0.0f);
 	CreateObjectBuffer(&monkeyObj);
 }
 
@@ -207,10 +209,8 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 		the_time = 0.0f;
 
 	ResetWorld();
-	TranslateWorld(0.0f, -1.0f, -5.0f);
-	//RotateWorld(0.0f, the_time, 0.0f);
-	
-	//ScaleWorld(0.5, 0.5, 0.5);
+	RotateWorld(0.0f, the_time, 0.0f);
+	ScaleWorld(0.2, 0.2, 0.2);
 	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
 
 	context->UpdateSubresource(
@@ -410,15 +410,14 @@ HRESULT CoreRenderer::CreateObjectBuffer(Object *obj)
 
 	// Create vertex buffer:
 	CD3D11_BUFFER_DESC vDesc(
-		sizeof(obj->ObjectVertices),
+		sizeof(*(obj->getVertices())) * obj->getVerticesCount(),
 		D3D11_BIND_VERTEX_BUFFER,
 		D3D11_USAGE_IMMUTABLE
 	);
 
-
 	D3D11_SUBRESOURCE_DATA vData;
 	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
-	vData.pSysMem = obj->ObjectVertices;
+	vData.pSysMem = obj->getVertices();
 	vData.SysMemPitch = 0;
 	vData.SysMemSlicePitch = 0;
 
@@ -428,17 +427,17 @@ HRESULT CoreRenderer::CreateObjectBuffer(Object *obj)
 		&objBuffer.objectVertexBuffer
 	);
 
-	objBuffer.verticesCount = obj->VerticesCount;
+	objBuffer.verticesCount = obj->getVerticesCount();
 
 	//create index buffer
 	CD3D11_BUFFER_DESC iDesc(
-		sizeof(obj->ObjectIndices),
+		sizeof(*(obj->getIndices())) * obj->getIndicesCount(),
 		D3D11_BIND_INDEX_BUFFER
 	);
 
 	D3D11_SUBRESOURCE_DATA iData;
 	ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
-	iData.pSysMem = obj->ObjectIndices;
+	iData.pSysMem = obj->getIndices();
 	iData.SysMemPitch = 0;
 	iData.SysMemSlicePitch = 0;
 
@@ -448,7 +447,7 @@ HRESULT CoreRenderer::CreateObjectBuffer(Object *obj)
 		&objBuffer.objectIndexBuffer
 	);
 
-	objBuffer.indicesCount = obj->IndicesCount;
+	objBuffer.indicesCount = obj->getIndicesCount();
 
 	vObjectBuffer.push_back(objBuffer);
 

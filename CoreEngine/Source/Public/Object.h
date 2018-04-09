@@ -8,19 +8,26 @@ public:
 	Object(const char *filename);
 	~Object();
 
-	bool IsLoaded() { return bIsLoaded; }
+	bool IsLoaded() { return isLoaded; }
+	void SetColor(float red, float green, float blue);
 
-	VertexPositionColor		ObjectVertices[1000];
-	unsigned int			VerticesCount;
-	unsigned short			ObjectIndices[1000];
-	unsigned int			IndicesCount;
+	VertexPositionColor*	getVertices()		{ return objectVertices;	}
+	unsigned int			getVerticesCount()	{ return verticesCount;		}
+
+	unsigned short*			getIndices()		{ return objectIndices;		}
+	unsigned int			getIndicesCount()	{ return indicesCount;		}
+	
 
 private:
 
 	void LoadObjectFromFile(const char* filename);
-
-	bool					bIsLoaded;
-	const char*				fileName;
-
+	
+	VertexPositionColor		*objectVertices;
+	unsigned int		 	verticesCount;
+	unsigned short			*objectIndices;
+	unsigned int			indicesCount;
+	
+	bool					isLoaded;
+	
 };
 
