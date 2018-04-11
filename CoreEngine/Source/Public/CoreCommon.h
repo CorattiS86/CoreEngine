@@ -12,6 +12,13 @@ typedef struct VERTEX_POSITION_COLOR
 	XMFLOAT3 color;
 } VertexPositionColor;
 
+typedef struct VERTEX_POSITION_NORMAL_COLOR
+{
+	XMFLOAT3 pos;
+	XMFLOAT3 normal;
+	XMFLOAT3 color;
+} VertexPositionNormalColor;
+
 //-----------------------------------------------------------------------------
 // Per-vertex data (extended)
 //-----------------------------------------------------------------------------
@@ -30,6 +37,17 @@ typedef struct _constantBufferStruct {
 	XMFLOAT4X4 view;
 	XMFLOAT4X4 projection;
 } ConstantBufferStruct;
+
+// Assert that the constant buffer remains 16-byte aligned.
+static_assert((sizeof(ConstantBufferStruct) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
+
+//-----------------------------------------------------------------------------
+// Variables for rendering the cube
+//-----------------------------------------------------------------------------
+typedef struct _NormalconstantBufferStruct {
+	XMFLOAT4X4 transpose;
+	XMFLOAT4X4 inverse;
+} NormalConstantBufferStruct;
 
 // Assert that the constant buffer remains 16-byte aligned.
 static_assert((sizeof(ConstantBufferStruct) % 16) == 0, "Constant Buffer size must be 16-byte aligned");

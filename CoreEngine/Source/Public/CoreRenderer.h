@@ -32,6 +32,7 @@ public:
 	void RotateWorld(float roll, float pitch, float yaw);
 	void ScaleWorld(float Sx, float Sy, float Sz);
 	void ResetWorld();
+	void UpdateInverseTranspose();
 	void SetStates();
 	void Render();
 	void RenderObjects(coreObjectBuffer *objBuffer);
@@ -52,7 +53,9 @@ private:
 	shared_ptr<CoreDevice> coreDevice;
 
 	
-	ConstantBufferStruct core_constantBufferData;
+	ConstantBufferStruct		core_constantBufferData;
+	NormalConstantBufferStruct	core_normalConstantBufferData;
+
 	unsigned int  core_indexCount;
 	unsigned int  core_frameCount;
 
@@ -64,6 +67,7 @@ private:
 	
 	
 	ComPtr<ID3D11Buffer>            core_pConstantBuffer;
+	ComPtr<ID3D11Buffer>            core_pNormalConstantBuffer;
 
 	ComPtr<ID3D11VertexShader>      core_pVertexShader;
 	ComPtr<ID3D11PixelShader>       core_pPixelShader;

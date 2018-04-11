@@ -17,7 +17,7 @@ CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	ResetWorld();
 	
 	Object cubeObj("CubeT.obj");
-	cubeObj.SetColor(1.0f, 0.0f, 0.0f);
+	cubeObj.SetColor(1.0f, 1.0f, 0.0f);
 	CreateObjectBuffer(&cubeObj);
 
 	Object monkeyObj("Monkey.obj");
@@ -112,21 +112,35 @@ void CoreRenderer::ResetWorld()
 	XMStoreFloat4x4(&core_constantBufferData.world, XMMatrixIdentity());
 }
 
+void CoreRenderer::UpdateInverseTranspose()
+{
+
+}
+
 void CoreRenderer::SetStates()
 {
 	ID3D11Device* device = coreDevice->GetDevice();
 	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
 
 	D3D11_RASTERIZER_DESC rsDesc;
+
 	ZeroMemory(&rsDesc, sizeof(D3D11_RASTERIZER_DESC));
 	rsDesc.FillMode = D3D11_FILL_WIREFRAME;
-	rsDesc.CullMode = D3D11_CULL_NONE;
-	rsDesc.FrontCounterClockwise = false;
+	rsDesc.CullMode = D3D11_CULL_BACK;
+	rsDesc.FrontCounterClockwise = true;
 	rsDesc.DepthClipEnable = true;
 
 	device->CreateRasterizerState(&rsDesc, core_pRasterStateWireframeMode.GetAddressOf());
 
-	context->RSSetState(core_pRasterStateWireframeMode.Get());
+	ZeroMemory(&rsDesc, sizeof(D3D11_RASTERIZER_DESC));
+	rsDesc.FillMode = D3D11_FILL_SOLID;
+	rsDesc.CullMode = D3D11_CULL_BACK;
+	rsDesc.FrontCounterClockwise = true;
+	rsDesc.DepthClipEnable = true;
+
+	device->CreateRasterizerState(&rsDesc, core_pRasterStateFillMode.GetAddressOf());
+
+	context->RSSetState(core_pRasterStateFillMode.Get());
 	//context->RSSetState(0);
 }
 
@@ -222,8 +236,27 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 		0
 	);
 
+	//////////////////////////////////////////////////////////////////////
+	// TODO 
+	context->VSSetConstantBuffers(
+		1,
+		1,
+		core_pNormalConstantBuffer.GetAddressOf()
+	);
+
+	UpdateInverseTranspose();
+
+	context->UpdateSubresource(
+		core_pNormalConstantBuffer.Get(),
+		0,
+		nullptr,
+		&core_normalConstantBufferData,
+		0,
+		0
+	);
+
 	// Set up the IA stage by setting the input topology and layout.
-	UINT stride = sizeof(VertexPositionColor);
+	UINT stride = sizeof(VertexPositionNormalColor);
 	UINT offset = 0;
 
 	context->IASetPrimitiveTopology(
@@ -284,8 +317,11 @@ HRESULT CoreRenderer::CreateShaders()
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
 		0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,
 		0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+		0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	hr = device->CreateInputLayout(
@@ -323,6 +359,17 @@ HRESULT CoreRenderer::CreateShaders()
 		&cbDesc,
 		nullptr,
 		core_pConstantBuffer.GetAddressOf()
+	);
+
+	CD3D11_BUFFER_DESC cbDesc2(
+		sizeof(NormalConstantBufferStruct),
+		D3D11_BIND_CONSTANT_BUFFER
+	);
+
+	hr = device->CreateBuffer(
+		&cbDesc2,
+		nullptr,
+		core_pNormalConstantBuffer.GetAddressOf()
 	);
 
 	fclose(vShader);
