@@ -9,7 +9,7 @@ cbuffer ModelViewProjectionConstantBuffer : register(b0)
 cbuffer InverseTransposeConstantBuffer : register(b1)
 {
 	matrix inverse;
-	matrix transpose;
+	matrix transp;
 }
 
 // Per-vertex data used as input to the vertex shader.
@@ -32,21 +32,21 @@ struct PixelShaderInput
 PixelShaderInput main(VertexShaderInput input)
 {
 	PixelShaderInput output;
+	
+	// Transform the vertex position into projected space.
 	float4 pos = float4(input.pos, 1.0f);
 
-	// Transform the vertex position into projected space.
-	matrix model_view_proj = mul(view, projection);
-	model_view_proj = mul(model, model_view_proj);
+	pos = mul(pos, model);
+	pos = mul(pos, view);
+	pos = mul(pos, projection);
 
-	//pos = mul(pos, model);
-	//pos = mul(pos, view);
-	//pos = mul(pos, projection);
+	output.pos = pos;
 
-	output.pos = mul(pos, model_view_proj);
+	// Transform normal position 
+	float4 normal = float4(input.normal, 0.0f);
 
-	float4 normal = float4(input.normal, 1.0f);
-	
-	output.normal = normal;
+	normal = mul(normal, model);
+	output.normal = normalize(normal);
 
 	// Pass the color through without modification.
 	output.color = input.color;

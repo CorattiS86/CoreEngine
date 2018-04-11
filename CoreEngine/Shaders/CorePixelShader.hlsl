@@ -10,7 +10,8 @@ struct PixelShaderInput
 float3 main(PixelShaderInput input) : SV_TARGET
 {
 	float3 lightColor		= float3( 1.0f, 1.0f, 1.0f);
-	float3 lightDirection	= float3( 0.0f, 1.0f, 0.0f);
+
+	float3 lightDirection	= float3( 1.0f, 0.0f, 0.0f);
 	
 	float3 matDiffuse = float3(input.color);
 

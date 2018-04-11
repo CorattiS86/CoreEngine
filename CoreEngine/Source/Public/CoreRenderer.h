@@ -17,6 +17,8 @@ typedef struct CORE_OBJECT_BUFFER
 	unsigned int			verticesCount;
 	ComPtr<ID3D11Buffer>    objectIndexBuffer;
 	unsigned int			indicesCount;
+
+	bool					withIndices;
 } coreObjectBuffer;
 
 class CoreRenderer
@@ -35,15 +37,19 @@ public:
 	void UpdateInverseTranspose();
 	void SetStates();
 	void Render();
-	void RenderObjects(coreObjectBuffer *objBuffer);
 
+	void AssemblyObject(const char *filename);
+	void AssemblyAllObject(const char *filename);
+	
 private:
 	
 	HRESULT CreateShaders();
 
 	HRESULT CreateObjectBuffer(Object *obj);
-
+	HRESULT CreateAllObjectBuffer(Object *obj);
 	void    CreateViewAndPerspective();
+	void    RenderObjects(coreObjectBuffer *objBuffer);
+
 
 	vector<coreObjectBuffer> vObjectBuffer;
 

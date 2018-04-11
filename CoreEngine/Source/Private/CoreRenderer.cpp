@@ -16,13 +16,9 @@ CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	core_frameCount = 0; // init frame count
 	ResetWorld();
 	
-	Object cubeObj("CubeT.obj");
-	cubeObj.SetColor(1.0f, 1.0f, 0.0f);
-	CreateObjectBuffer(&cubeObj);
-
-	Object monkeyObj("Monkey.obj");
-	monkeyObj.SetColor(0.0f, 1.0f, 0.0f);
-	CreateObjectBuffer(&monkeyObj);
+	//AssemblyObject("CubeT.obj");
+	//AssemblyAllObject("CubeT.obj");
+	AssemblyObject("Monkey.obj");
 }
 
 CoreRenderer::~CoreRenderer()
@@ -67,8 +63,9 @@ void CoreRenderer::TranslateWorld(float axisX, float axisY, float axisZ)
 		&core_constantBufferData.world,
 		XMMatrixTranspose(
 			XMMatrixMultiply(
-				translation, 
-				XMLoadFloat4x4(&core_constantBufferData.world))
+				XMLoadFloat4x4(&core_constantBufferData.world),
+				translation
+				)
 		)
 	);
 }
@@ -84,8 +81,9 @@ void CoreRenderer::RotateWorld(float roll, float pitch, float yaw)
 		&core_constantBufferData.world,
 		XMMatrixTranspose(
 			XMMatrixMultiply(
-				rotation,
-				XMLoadFloat4x4(&core_constantBufferData.world))
+				XMLoadFloat4x4(&core_constantBufferData.world),
+				rotation
+			)
 		)
 	);
 }
@@ -101,8 +99,9 @@ void CoreRenderer::ScaleWorld(float Sx, float Sy, float Sz)
 		&core_constantBufferData.world,
 		XMMatrixTranspose(
 			XMMatrixMultiply(
-				scale,
-				XMLoadFloat4x4(&core_constantBufferData.world))
+				XMLoadFloat4x4(&core_constantBufferData.world),
+				scale
+			)
 		)
 	);
 }
@@ -114,7 +113,26 @@ void CoreRenderer::ResetWorld()
 
 void CoreRenderer::UpdateInverseTranspose()
 {
+	XMStoreFloat4x4(
+		&core_normalConstantBufferData.inverse,
+		XMMatrixTranspose(
+			XMMatrixInverse(
+				&XMMatrixDeterminant(
+					XMLoadFloat4x4(&core_constantBufferData.world)
+				),
+				XMLoadFloat4x4(&core_constantBufferData.world)
+			)
+		)
+	);
 
+	XMStoreFloat4x4(
+		&core_normalConstantBufferData.transpose,
+		XMMatrixTranspose(
+			XMMatrixTranspose(
+				XMLoadFloat4x4(&core_normalConstantBufferData.inverse)
+			)
+		)
+	);
 }
 
 void CoreRenderer::SetStates()
@@ -168,14 +186,14 @@ void CoreRenderer::Render()
 		);
 
 		motionBlur = 0;
-
 	}
 	
 	context->ClearDepthStencilView(
 		depthStencil,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.0f,
-		0);
+		0
+	);
 
 	// Set the render target.
 	context->OMSetRenderTargets(
@@ -207,10 +225,27 @@ void CoreRenderer::Render()
 
 }
 
+void CoreRenderer::AssemblyObject(const char * filename)
+{
+	Object obj;
+	obj.LoadObjectFromFile(filename);
+	obj.SetColor(1.0f, 1.0f, 0.0f);
+	CreateObjectBuffer(&obj);
+}
+
+void CoreRenderer::AssemblyAllObject(const char * filename)
+{
+	Object obj;
+	obj.LoadAllObjectFromFile(filename);
+	obj.SetColor(1.0f, 1.0f, 0.0f);
+	CreateAllObjectBuffer(&obj);
+}
+
 void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 {
 	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
 
+	//////////////////////////////////////////////////
 	context->VSSetConstantBuffers(
 		0,
 		1,
@@ -224,7 +259,8 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 
 	ResetWorld();
 	RotateWorld(0.0f, the_time, 0.0f);
-	ScaleWorld(0.2, 0.2, 0.2);
+	TranslateWorld(0.0f, 0.0f, 0.0f);
+	//ScaleWorld(0.2, 0.2, 0.2);
 	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
 
 	context->UpdateSubresource(
@@ -236,8 +272,7 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 		0
 	);
 
-	//////////////////////////////////////////////////////////////////////
-	// TODO 
+	//////////////////////////////////////////////////
 	context->VSSetConstantBuffers(
 		1,
 		1,
@@ -245,7 +280,7 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 	);
 
 	UpdateInverseTranspose();
-
+	 
 	context->UpdateSubresource(
 		core_pNormalConstantBuffer.Get(),
 		0,
@@ -254,6 +289,7 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 		0,
 		0
 	);
+	//////////////////////////////////////////////////
 
 	// Set up the IA stage by setting the input topology and layout.
 	UINT stride = sizeof(VertexPositionNormalColor);
@@ -271,17 +307,27 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 		&offset
 	);
 
-	context->IASetIndexBuffer(
-		objBuffer->objectIndexBuffer.Get(),
-		DXGI_FORMAT_R16_UINT,
-		0
-	);
+	if(objBuffer->withIndices) 
+	{
+		context->IASetIndexBuffer(
+			objBuffer->objectIndexBuffer.Get(),
+			DXGI_FORMAT_R16_UINT,
+			0
+		);
 
-	context->DrawIndexed(
-		objBuffer->indicesCount,
-		0,
-		0
-	);
+		context->DrawIndexed(
+			objBuffer->indicesCount,
+			0,
+			0
+		);
+	}
+	else
+	{
+		context->Draw(
+			objBuffer->verticesCount,
+			0
+		);
+	}
 }
 
 HRESULT CoreRenderer::CreateShaders()
@@ -375,76 +421,6 @@ HRESULT CoreRenderer::CreateShaders()
 	fclose(vShader);
 	fclose(pShader);
 
-
-	// Load the extended shaders with lighting calculations.
-	/* 
-	bytes = new BYTE[destSize];
-	bytesRead = 0;
-	fopen_s(&vShader, "CubeVertexShaderLighting.cso", "rb");
-	bytesRead = fread_s(bytes, destSize, 1, 4096, vShader);
-	hr = device->CreateVertexShader(
-	bytes,
-	bytesRead,
-	nullptr,
-	&core_pVertexBuffer
-	);
-
-	D3D11_INPUT_ELEMENT_DESC iaDescExtended[] =
-	{
-	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-	0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-
-	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-	0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-
-	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-	0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-
-	hr = device->CreateInputLayout(
-	iaDesc,
-	ARRAYSIZE(iaDesc),
-	bytes,
-	bytesRead,
-	&core_pInputLayoutExtended
-	);
-
-	delete bytes;
-
-
-	bytes = new BYTE[destSize];
-	bytesRead = 0;
-	fopen_s(&pShader, "CubePixelShaderPhongLighting.cso", "rb");
-	bytesRead = fread_s(bytes, destSize, 1, 4096, pShader);
-	hr = device->CreatePixelShader(
-	bytes,
-	bytesRead,
-	nullptr,
-	core_pPixelShader.GetAddressOf()
-	);
-
-	delete bytes;
-
-	fclose(vShader);
-	fclose(pShader);
-
-
-	bytes = new BYTE[destSize];
-	bytesRead = 0;
-	fopen_s(&pShader, "CubePixelShaderTexelLighting.cso", "rb");
-	bytesRead = fread_s(bytes, destSize, 1, 4096, pShader);
-	hr = device->CreatePixelShader(
-	bytes,
-	bytesRead,
-	nullptr,
-	core_pPixelShader.GetAddressOf()
-	);
-
-	delete bytes;
-
-	fclose(pShader);
-	*/ 
-
 	return hr;
 }
 
@@ -453,8 +429,9 @@ HRESULT CoreRenderer::CreateObjectBuffer(Object *obj)
 	HRESULT hr = S_OK;	
 	
 	ID3D11Device* device = coreDevice->GetDevice();
+	
 	coreObjectBuffer objBuffer;
-
+	
 	// Create vertex buffer:
 	CD3D11_BUFFER_DESC vDesc(
 		sizeof(*(obj->getVertices())) * obj->getVerticesCount(),
@@ -495,21 +472,55 @@ HRESULT CoreRenderer::CreateObjectBuffer(Object *obj)
 	);
 
 	objBuffer.indicesCount = obj->getIndicesCount();
+	objBuffer.withIndices  = true;
 
 	vObjectBuffer.push_back(objBuffer);
 
 	return hr;
 }
 
+HRESULT CoreRenderer::CreateAllObjectBuffer(Object *obj)
+{
+	HRESULT hr = S_OK;
 
+	ID3D11Device* device = coreDevice->GetDevice();
+	
+	coreObjectBuffer allObjBuffer;
+
+	// Create vertex buffer:
+	CD3D11_BUFFER_DESC vDesc(
+		sizeof(*(obj->getAllVertices())) * obj->getAllVerticesCount(),
+		D3D11_BIND_VERTEX_BUFFER,
+		D3D11_USAGE_IMMUTABLE
+	);
+
+	D3D11_SUBRESOURCE_DATA vData;
+	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
+	vData.pSysMem = obj->getAllVertices();
+	vData.SysMemPitch = 0;
+	vData.SysMemSlicePitch = 0;
+
+	hr = device->CreateBuffer(
+		&vDesc,
+		&vData,
+		&allObjBuffer.objectVertexBuffer
+	);
+
+	allObjBuffer.verticesCount = obj->getAllVerticesCount();
+	allObjBuffer.withIndices   = false;
+
+	vObjectBuffer.push_back(allObjBuffer);
+	
+	return hr;
+}
 
 void CoreRenderer::CreateViewAndPerspective()
 {
 	// Use DirectXMath to create view and perspective matrices.
 
 	XMVECTOR up  = XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
-	XMVECTOR eye = XMVectorSet(0.0f, 0.7f, 1.5f, 0.f);
-	XMVECTOR at  = XMVectorSet(0.0f, -0.1f, 0.0f, 0.f);
+	XMVECTOR eye = XMVectorSet(0.0f, 3.0f, 5.0f, 0.f);
+	XMVECTOR at  = XMVectorSet(0.0f, 0.0f, 0.0f, 0.f);
 
 	XMStoreFloat4x4(
 		&core_constantBufferData.view,
