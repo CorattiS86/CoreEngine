@@ -325,3 +325,7 @@ ASALocalRun/
 
 #3d object files .Obj
 !CoreEngine/Resources/*
+*.mtl
+
+#Compiled Shaders
+*.cso
