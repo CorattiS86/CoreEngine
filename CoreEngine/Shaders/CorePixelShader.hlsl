@@ -26,7 +26,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 	DirectionalLight l_Directional;
 	l_Directional.diffuseColor		= float3(1.0f, 1.0f, 1.0f);
 	l_Directional.specularColor		= float3(1.0f, 1.0f, 1.0f);
-	l_Directional.lightDirection	= normalize( float3(0.0f, -5.0f, 5.0f) ); //all vector must be normalized
+	l_Directional.lightDirection	= normalize( float3(1.0f, 3.0f, 8.0f) ); //all vector must be normalized
 	
 	//l_Directional.lightDirection = reflect(-l_Directional.lightDirection, float3(0.0f, 1.0f, 0.0f));
 
@@ -45,9 +45,9 @@ float3 main(PixelShaderInput input) : SV_TARGET
 	[flatten]
 	if(cos_LN > 0.0f)
 	{
-		float3	V	= normalize( float3(0.0, 5.0, 5.0) );
+		float3	V	= normalize( float3(0.0, 2.0, 5.0) );
 		float3  R	= reflect(-l_Directional.lightDirection, input.normal); // reflect require the sign minus for direction
-		float	Ks  = pow(max(dot(R, V), 0), 16);
+		float	Ks  = pow(max(dot(R, V), 0), 4);
 
 		S += Ks * l_Directional.specularColor * mat.specularColor;
 	}
