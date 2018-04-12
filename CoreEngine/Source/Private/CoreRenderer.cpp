@@ -18,7 +18,9 @@ CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	
 	//AssemblyObject("CubeT.obj");
 	//AssemblyAllObject("CubeT.obj");
-	AssemblyObject("Monkey.obj");
+	AssemblyObject("Resources/Monkey.obj");
+	//AssemblyObject("Sphere.obj");
+	AssemblyObject("Resources/Plane.obj");
 }
 
 CoreRenderer::~CoreRenderer()
@@ -258,7 +260,7 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 		the_time = 0.0f;
 
 	ResetWorld();
-	RotateWorld(0.0f, the_time, 0.0f);
+	//RotateWorld(0.0f, the_time, 0.0f);
 	TranslateWorld(0.0f, 0.0f, 0.0f);
 	//ScaleWorld(0.2, 0.2, 0.2);
 	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
@@ -519,7 +521,7 @@ void CoreRenderer::CreateViewAndPerspective()
 	// Use DirectXMath to create view and perspective matrices.
 
 	XMVECTOR up  = XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
-	XMVECTOR eye = XMVectorSet(0.0f, 3.0f, 5.0f, 0.f);
+	XMVECTOR eye = XMVectorSet(0.0f, 5.0f, 5.0f, 0.f);
 	XMVECTOR at  = XMVectorSet(0.0f, 0.0f, 0.0f, 0.f);
 
 	XMStoreFloat4x4(
