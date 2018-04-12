@@ -323,7 +323,7 @@ ASALocalRun/
 # NVidia Nsight GPU debugger configuration file
 *.nvuser
 
-#3d object files .Obj
+#Resources files
 !CoreEngine/Resources/*
 *.mtl
 
