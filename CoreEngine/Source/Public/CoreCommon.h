@@ -44,10 +44,9 @@ static_assert((sizeof(ConstantBufferStruct) % 16) == 0, "Constant Buffer size mu
 //-----------------------------------------------------------------------------
 // Variables for rendering the cube
 //-----------------------------------------------------------------------------
-typedef struct _NormalconstantBufferStruct {
-	XMFLOAT4X4 transpose;
-	XMFLOAT4X4 inverse;
-} NormalConstantBufferStruct;
+typedef struct _OtherconstantBufferStruct {
+	XMFLOAT4 eye;
+} OtherConstantBufferStruct;
 
 // Assert that the constant buffer remains 16-byte aligned.
-static_assert((sizeof(ConstantBufferStruct) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
+static_assert((sizeof(OtherConstantBufferStruct) % 16) == 0, "Constant Buffer size must be 16-byte aligned");

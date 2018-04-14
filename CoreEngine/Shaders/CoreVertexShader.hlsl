@@ -6,12 +6,6 @@ cbuffer constantBufferPerObject : register(b0)
 	matrix projection;
 };
 
-cbuffer constantBufferPerFrame : register(b1)
-{
-	float3 eyePosition;
-
-};
-
 // Per-vertex data used as input to the vertex shader.
 struct VertexShaderInput
 {

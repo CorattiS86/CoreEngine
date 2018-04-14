@@ -34,7 +34,7 @@ public:
 	void RotateWorld(float roll, float pitch, float yaw);
 	void ScaleWorld(float Sx, float Sy, float Sz);
 	void ResetWorld();
-	void UpdateInverseTranspose();
+	void UpdateOtherConstantBuffer();
 	void SetStates();
 	void Render();
 
@@ -60,7 +60,7 @@ private:
 
 	
 	ConstantBufferStruct		core_constantBufferData;
-	NormalConstantBufferStruct	core_normalConstantBufferData;
+	OtherConstantBufferStruct	core_otherConstantBufferData;
 
 	unsigned int  core_indexCount;
 	unsigned int  core_frameCount;
@@ -68,12 +68,9 @@ private:
 	//-----------------------------------------------------------------------------
 	// Direct3D device resources
 	//-----------------------------------------------------------------------------
-	//ID3DXEffect* m_pEffect;
-
-	
-	
+	//ID3DXEffect* m_pEffect;	
 	ComPtr<ID3D11Buffer>            core_pConstantBuffer;
-	ComPtr<ID3D11Buffer>            core_pNormalConstantBuffer;
+	ComPtr<ID3D11Buffer>            core_pOtherConstantBuffer;
 
 	ComPtr<ID3D11VertexShader>      core_pVertexShader;
 	ComPtr<ID3D11PixelShader>       core_pPixelShader;
@@ -84,4 +81,7 @@ private:
 	ComPtr<ID3D11RasterizerState>	core_pRasterStateWireframeMode;
 	ComPtr<ID3D11RasterizerState>	core_pRasterStateFillMode;
 
+	XMVECTOR up		= XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
+	XMVECTOR eye	= XMVectorSet(0.0f, 5.0f, 5.0f, 0.f);
+	XMVECTOR at		= XMVectorSet(0.0f, 0.0f, 0.0f, 0.f);
 };

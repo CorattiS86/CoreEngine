@@ -1,3 +1,8 @@
+cbuffer constantBufferPerFrame : register(b0)
+{
+	float3 eyePosition; float empty;
+};
+
 // Per-pixel color data passed through the pixel shader.
 struct PixelShaderInput
 {
@@ -23,11 +28,22 @@ struct PointLight
 	float	range;
 };
 
-struct Material
+struct SpotLight
 {
 	float3	diffuseColor;
-	float3  specularColor;
-	float	specularPower;
+	float3	specularColor;
+
+	float3	lightPosition;
+	float	range;
+
+	float3  lightDirection;
+	float	maxSpot;
+};
+
+struct Material
+{
+	float3 diffuseColor;  float empty;
+	float3 specularColor; float specularPower;
 };
 
 // A pass-through function for the (interpolated) color data.
@@ -38,7 +54,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 	Material mat;
 	mat.diffuseColor	= float3(input.color);
 	mat.specularColor	= float3(1.0f, 1.0f, 1.0f);
-	mat.specularPower	= 4;
+	mat.specularPower	= 64;
 
 	float3	D = float3(0.0f, 0.0f, 0.0f);
 	float3	S = float3(0.0f, 0.0f, 0.0f);
@@ -48,7 +64,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		DirectionalLight l_Directional;
 		l_Directional.diffuseColor		= float3(1.0f, 1.0f, 1.0f);
 		l_Directional.specularColor		= float3(1.0f, 1.0f, 1.0f);
-		l_Directional.lightDirection	= normalize(float3(1.0f, 1.0f, 0.0f)); //all vector must be normalized
+		l_Directional.lightDirection	= normalize(float3(0.0f, 10.0f, 1.0f)); //all vector must be normalized
 
 		float cos_LN = dot(l_Directional.lightDirection, input.normal);
 
@@ -58,7 +74,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		[flatten]
 		if(cos_LN > 0.0f)
 		{
-			float3	V	= normalize( float3(0.0, 2.0, 5.0) );
+			float3	V	= normalize(eyePosition);
 			float3  R	= reflect(-l_Directional.lightDirection, input.normal); // reflect require the sign minus for direction
 			float	Ks  = pow(max(dot(R, V), 0), mat.specularPower);
 
@@ -72,43 +88,66 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		PointLight	l_Point;
 		l_Point.diffuseColor	= float3(1.0f, 1.0f, 1.0f);
 		l_Point.specularColor	= float3(1.0f, 1.0f, 1.0f);
-		l_Point.lightPosition	= float3(0.0f, 1.0f, -8.0f);
+		l_Point.lightPosition	= float3(1.0f, 1.0f, -5.0f);
+		l_Point.range = 7.0f;
 
-		float3 direction = normalize(float3(
-			l_Point.lightPosition.x - input.posW.x,
-			l_Point.lightPosition.y - input.posW.y,
-			l_Point.lightPosition.z - input.posW.z
-			)
+		float3 direction = normalize(
+			float3(	l_Point.lightPosition - input.posW )
 		);
 
 		float  cos_LN		= dot( direction, input.normal);
 		float  d			= length(l_Point.lightPosition - float3(input.posW.x, input.posW.y, input.posW.z));
 
-		float  Kd = max(cos_LN, 0) / d;
+		float  Kd = 0.0f;
 
-		D += ( Kd * l_Point.diffuseColor * mat.diffuseColor);
+		if( d < l_Point.range)
+			Kd = max(cos_LN, 0) / d;
+		
+		//D += ( Kd * l_Point.diffuseColor * mat.diffuseColor);
+
+		[flatten]
+		if (cos_LN > 0.0f)
+		{
+			float3	V = normalize(eyePosition);
+			float3  R = reflect(-direction, input.normal); // reflect require the sign minus for direction
+			float	Ks = pow(max(dot(R, V), 0), mat.specularPower) / d;
+
+			//S += Ks * l_Point.specularColor * mat.specularColor;
+		}
 	}
-	{
-		PointLight	l_Point;
-		l_Point.diffuseColor = float3(1.0f, 1.0f, 1.0f);
-		l_Point.specularColor = float3(1.0f, 1.0f, 1.0f);
-		l_Point.lightPosition = float3(5.0f, 1.0f, -2.0f);
 
-		float3 direction = normalize(float3(
-			l_Point.lightPosition.x - input.posW.x,
-			l_Point.lightPosition.y - input.posW.y,
-			l_Point.lightPosition.z - input.posW.z
-			)
+	{
+		SpotLight	l_Spot;
+		l_Spot.diffuseColor   = float3(1.0f, 1.0f, 1.0f);
+		l_Spot.specularColor  = float3(1.0f, 1.0f, 1.0f);
+		l_Spot.lightPosition  = float3(0.0f, 3.0f, -5.0f);
+		l_Spot.lightDirection = normalize(float3(0.0f, -3.0f, 5.0f));
+		l_Spot.maxSpot		  = 0.98f;
+
+		float3 direction = normalize(
+			float3(	l_Spot.lightPosition - input.posW )
 		);
 
-		float  cos_LN = dot(direction, input.normal);
-		float  d = length(l_Point.lightPosition - float3(input.posW.x, input.posW.y, input.posW.z));
+		float d = length( float3(l_Spot.lightPosition - input.posW) );
+		float Kd = 0.0f;
 
-		float  Kd = max(cos_LN, 0) / d;
-
-		D += (Kd * l_Point.diffuseColor * mat.diffuseColor);
-	}
+		float cos_LD = dot(direction, -l_Spot.lightDirection);
 	
+		d = 1;
+		if (cos_LD > l_Spot.maxSpot)
+		{
+			Kd = 1.0f / d;
+
+			D += Kd * l_Spot.diffuseColor * mat.diffuseColor;
+	
+			float3	V = normalize(eyePosition);
+			float3  R = reflect(-direction, input.normal); // reflect require the sign inus for direction
+			float	Ks = pow(max(dot(R, V), 0), mat.specularPower) / d;
+
+			S += Ks * l_Spot.specularColor * mat.specularColor;
+			
+		}
+	}
 	///////////////////////////////////////
 	return D + S;
 }

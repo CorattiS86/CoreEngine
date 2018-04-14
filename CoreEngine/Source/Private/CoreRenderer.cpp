@@ -52,6 +52,22 @@ void CoreRenderer::Update()
 	if (core_frameCount >= MAXUINT)  core_frameCount = 0;
 }
 
+void CoreRenderer::AssemblyObject(const char * filename)
+{
+	Object obj;
+	obj.LoadObjectFromFile(filename);
+	obj.SetColor(1.0f, 1.0f, 0.0f);
+	CreateObjectBuffer(&obj);
+}
+
+void CoreRenderer::AssemblyAllObject(const char * filename)
+{
+	Object obj;
+	obj.LoadAllObjectFromFile(filename);
+	obj.SetColor(1.0f, 1.0f, 0.0f);
+	CreateAllObjectBuffer(&obj);
+}
+
 void CoreRenderer::TranslateWorld(float axisX, float axisY, float axisZ)
 {
 	XMMATRIX translation =
@@ -113,28 +129,15 @@ void CoreRenderer::ResetWorld()
 	XMStoreFloat4x4(&core_constantBufferData.world, XMMatrixIdentity());
 }
 
-void CoreRenderer::UpdateInverseTranspose()
+void CoreRenderer::UpdateOtherConstantBuffer()
 {
-	XMStoreFloat4x4(
-		&core_normalConstantBufferData.inverse,
-		XMMatrixTranspose(
-			XMMatrixInverse(
-				&XMMatrixDeterminant(
-					XMLoadFloat4x4(&core_constantBufferData.world)
-				),
-				XMLoadFloat4x4(&core_constantBufferData.world)
-			)
-		)
+
+	XMStoreFloat4(
+		&core_otherConstantBufferData.eye,
+		eye
 	);
 
-	XMStoreFloat4x4(
-		&core_normalConstantBufferData.transpose,
-		XMMatrixTranspose(
-			XMMatrixTranspose(
-				XMLoadFloat4x4(&core_normalConstantBufferData.inverse)
-			)
-		)
-	);
+	
 }
 
 void CoreRenderer::SetStates()
@@ -227,22 +230,6 @@ void CoreRenderer::Render()
 
 }
 
-void CoreRenderer::AssemblyObject(const char * filename)
-{
-	Object obj;
-	obj.LoadObjectFromFile(filename);
-	obj.SetColor(1.0f, 1.0f, 0.0f);
-	CreateObjectBuffer(&obj);
-}
-
-void CoreRenderer::AssemblyAllObject(const char * filename)
-{
-	Object obj;
-	obj.LoadAllObjectFromFile(filename);
-	obj.SetColor(1.0f, 1.0f, 0.0f);
-	CreateAllObjectBuffer(&obj);
-}
-
 void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 {
 	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
@@ -276,19 +263,19 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 	);
 
 	//////////////////////////////////////////////////
-	context->VSSetConstantBuffers(
+	context->PSSetConstantBuffers(
+		0,
 		1,
-		1,
-		core_pNormalConstantBuffer.GetAddressOf()
+		core_pOtherConstantBuffer.GetAddressOf()
 	);
 
-	UpdateInverseTranspose();
+	UpdateOtherConstantBuffer();
 	 
 	context->UpdateSubresource(
-		core_pNormalConstantBuffer.Get(),
+		core_pOtherConstantBuffer.Get(),
 		0,
 		nullptr,
-		&core_normalConstantBufferData,
+		&core_otherConstantBufferData,
 		0,
 		0
 	);
@@ -411,14 +398,14 @@ HRESULT CoreRenderer::CreateShaders()
 	);
 
 	CD3D11_BUFFER_DESC cbDesc2(
-		sizeof(NormalConstantBufferStruct),
+		sizeof(OtherConstantBufferStruct),
 		D3D11_BIND_CONSTANT_BUFFER
 	);
 
 	hr = device->CreateBuffer(
 		&cbDesc2,
 		nullptr,
-		core_pNormalConstantBuffer.GetAddressOf()
+		core_pOtherConstantBuffer.GetAddressOf()
 	);
 
 	fclose(vShader);
@@ -520,11 +507,6 @@ HRESULT CoreRenderer::CreateAllObjectBuffer(Object *obj)
 void CoreRenderer::CreateViewAndPerspective()
 {
 	// Use DirectXMath to create view and perspective matrices.
-
-	XMVECTOR up  = XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
-	XMVECTOR eye = XMVectorSet(0.0f, 2.0f, 5.0f, 0.f);
-	XMVECTOR at  = XMVectorSet(0.0f, 0.0f, 0.0f, 0.f);
-
 	XMStoreFloat4x4(
 		&core_constantBufferData.view,
 		XMMatrixTranspose(
