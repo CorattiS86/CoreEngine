@@ -19,6 +19,13 @@ typedef struct VERTEX_POSITION_NORMAL_COLOR
 	XMFLOAT3 color;
 } VertexPositionNormalColor;
 
+typedef struct VERTEX_POSITION_NORMAL_TEXCOORD
+{
+	XMFLOAT3 pos;
+	XMFLOAT3 normal;
+	XMFLOAT3 color;
+	XMFLOAT2 texcoord;
+} VertexPosNorColTex;
 //-----------------------------------------------------------------------------
 // Per-vertex data (extended)
 //-----------------------------------------------------------------------------

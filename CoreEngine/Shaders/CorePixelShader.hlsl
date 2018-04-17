@@ -10,6 +10,7 @@ struct PixelShaderInput
 	float3 posW		: POSITION0;
 	float4 normal	: NORMAL0;
 	float3 color	: COLOR0;
+	float2 texcoord : TEXCOORD0;
 };
 
 struct DirectionalLight
@@ -46,6 +47,31 @@ struct Material
 	float3 specularColor; float specularPower;
 };
 
+SamplerState samplerState
+{
+	// Use linear filtering for minification, magnification, and mipmapping.
+	Filter = MIN_MAG_MIP_LINEAR;
+
+	// Use linear filtering for minification, point filtering for magnification,
+	// and point filtering for mipmapping.
+	//Filter = MIN_LINEAR_MAG_MIP_POINT;
+
+	// Use point filtering for minification, linear filtering for magnification,
+	// and point filtering for mipmapping.
+	//Filter = MIN_POINT_MAG_LINEAR_MIP_POINT;
+};
+
+SamplerState samplerAnisotropic
+{
+	Filter = ANISOTROPIC;
+	MaxAnisotropy = 4;
+};
+
+texture2D diffuseMap;
+
+
+
+
 // A pass-through function for the (interpolated) color data.
 float3 main(PixelShaderInput input) : SV_TARGET
 {
@@ -64,12 +90,12 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		DirectionalLight l_Directional;
 		l_Directional.diffuseColor		= float3(1.0f, 1.0f, 1.0f);
 		l_Directional.specularColor		= float3(1.0f, 1.0f, 1.0f);
-		l_Directional.lightDirection	= normalize(float3(0.0f, 10.0f, 1.0f)); //all vector must be normalized
+		l_Directional.lightDirection	= normalize(float3(5.0f, 5.0f, 3.0f)); //all vector must be normalized
 
 		float cos_LN = dot(l_Directional.lightDirection, input.normal);
 
 		float Kd = max(cos_LN, 0);
-		//D += Kd * l_Directional.diffuseColor * mat.diffuseColor;
+		D += Kd * l_Directional.diffuseColor * mat.diffuseColor;
 
 		[flatten]
 		if(cos_LN > 0.0f)
@@ -78,7 +104,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 			float3  R	= reflect(-l_Directional.lightDirection, input.normal); // reflect require the sign minus for direction
 			float	Ks  = pow(max(dot(R, V), 0), mat.specularPower);
 
-			//S += Ks * l_Directional.specularColor * mat.specularColor;
+			S += Ks * l_Directional.specularColor * mat.specularColor;
 		}
 	}
 	///////////////////////////////////////
@@ -138,16 +164,18 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		{
 			Kd = 1.0f / d;
 
-			D += Kd * l_Spot.diffuseColor * mat.diffuseColor;
+			//D += Kd * l_Spot.diffuseColor * mat.diffuseColor;
 	
 			float3	V = normalize(eyePosition);
 			float3  R = reflect(-direction, input.normal); // reflect require the sign inus for direction
 			float	Ks = pow(max(dot(R, V), 0), mat.specularPower) / d;
 
-			S += Ks * l_Spot.specularColor * mat.specularColor;
+			//S += Ks * l_Spot.specularColor * mat.specularColor;
 			
 		}
 	}
 	///////////////////////////////////////
 	return D + S;
+
+	//float3 texColor = diffuseMap.Sample(samplerState, input.texcoord);
 }

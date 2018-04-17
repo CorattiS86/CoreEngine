@@ -29,6 +29,8 @@ public:
 
 	void CreateDeviceDependentResources();
 	void CreateWindowSizeDependentResources();
+	void CreateGraphicalResources();
+
 	void Update();
 	void TranslateWorld(float axisX, float axisY, float axisZ);
 	void RotateWorld(float roll, float pitch, float yaw);
@@ -37,16 +39,19 @@ public:
 	void UpdateOtherConstantBuffer();
 	void SetStates();
 	void Render();
+	
+private:
 
 	void AssemblyObject(const char *filename);
 	void AssemblyAllObject(const char *filename);
-	
-private:
-	
+	void AssemblyTexObject(const char *filename);
+
 	HRESULT CreateShaders();
 
 	HRESULT CreateObjectBuffer(Object *obj);
 	HRESULT CreateAllObjectBuffer(Object *obj);
+	HRESULT CreateTexObjectBuffer(Object *obj);
+
 	void    CreateViewAndPerspective();
 	void    RenderObjects(coreObjectBuffer *objBuffer);
 
@@ -82,6 +87,6 @@ private:
 	ComPtr<ID3D11RasterizerState>	core_pRasterStateFillMode;
 
 	XMVECTOR up		= XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
-	XMVECTOR eye	= XMVectorSet(0.0f, 5.0f, 5.0f, 0.f);
+	XMVECTOR eye	= XMVectorSet(0.0f, 1.0f, 5.0f, 0.f);
 	XMVECTOR at		= XMVectorSet(0.0f, 0.0f, 0.0f, 0.f);
 };

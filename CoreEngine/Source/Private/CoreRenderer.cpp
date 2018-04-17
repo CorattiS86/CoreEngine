@@ -16,11 +16,6 @@ CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	core_frameCount = 0; // init frame count
 	ResetWorld();
 	
-	//AssemblyObject("CubeT.obj");
-	AssemblyAllObject("Resources/Plane.obj");
-	//AssemblyObject("Resources/Monkey.obj");
-	//AssemblyObject("Resources/Sphere.obj");
-	//AssemblyObject("Resources/Monkey_Yup_Zforward.obj");
 }
 
 CoreRenderer::~CoreRenderer()
@@ -45,6 +40,19 @@ void CoreRenderer::CreateWindowSizeDependentResources()
 	CreateViewAndPerspective();
 }
 
+void CoreRenderer::CreateGraphicalResources()
+{
+	auto AssemblyObjectsTask = Concurrency::create_task(
+		[this]()
+	{
+		//AssemblyObject("CubeT.obj");
+		//AssemblyAllObject("Resources/Plane.obj");
+		AssemblyTexObject("Resources/CubeUV.obj");
+		//AssemblyObject("Resources/Sphere.obj");
+	}
+	);
+}
+
 void CoreRenderer::Update()
 {
 	core_frameCount++;
@@ -66,6 +74,14 @@ void CoreRenderer::AssemblyAllObject(const char * filename)
 	obj.LoadAllObjectFromFile(filename);
 	obj.SetColor(1.0f, 1.0f, 0.0f);
 	CreateAllObjectBuffer(&obj);
+}
+
+void CoreRenderer::AssemblyTexObject(const char * filename)
+{
+	Object obj;
+	obj.LoadTexObjectFromFile(filename);
+	obj.SetColor(1.0f, 0.0f, 0.0f);
+	CreateTexObjectBuffer(&obj);
 }
 
 void CoreRenderer::TranslateWorld(float axisX, float axisY, float axisZ)
@@ -248,7 +264,7 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 
 	ResetWorld();
 	//RotateWorld(0.0f, 3.14, 0.0f);
-	//RotateWorld(0.0f, the_time, 0.0f);
+	RotateWorld(0.0f, the_time, 0.0f);
 	//TranslateWorld(5.0f, 10.0f, -20.0f);
 	//ScaleWorld(0.2, 0.2, 0.2);
 	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
@@ -282,7 +298,7 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 	//////////////////////////////////////////////////
 
 	// Set up the IA stage by setting the input topology and layout.
-	UINT stride = sizeof(VertexPositionNormalColor);
+	UINT stride = sizeof(VertexPosNorColTex);
 	UINT offset = 0;
 
 	context->IASetPrimitiveTopology(
@@ -358,6 +374,9 @@ HRESULT CoreRenderer::CreateShaders()
 
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,
 		0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,
+		0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	hr = device->CreateInputLayout(
@@ -501,6 +520,41 @@ HRESULT CoreRenderer::CreateAllObjectBuffer(Object *obj)
 
 	vObjectBuffer.push_back(allObjBuffer);
 	
+	return hr;
+}
+
+HRESULT CoreRenderer::CreateTexObjectBuffer(Object * obj)
+{
+	HRESULT hr = S_OK;
+
+	ID3D11Device* device = coreDevice->GetDevice();
+
+	coreObjectBuffer allObjBuffer;
+
+	// Create vertex buffer:
+	CD3D11_BUFFER_DESC vDesc(
+		sizeof(*(obj->getTexVertices())) * obj->getTexVerticesCount(),
+		D3D11_BIND_VERTEX_BUFFER,
+		D3D11_USAGE_IMMUTABLE
+	);
+
+	D3D11_SUBRESOURCE_DATA vData;
+	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
+	vData.pSysMem = obj->getTexVertices();
+	vData.SysMemPitch = 0;
+	vData.SysMemSlicePitch = 0;
+
+	hr = device->CreateBuffer(
+		&vDesc,
+		&vData,
+		&allObjBuffer.objectVertexBuffer
+	);
+
+	allObjBuffer.verticesCount = obj->getTexVerticesCount();
+	allObjBuffer.withIndices = false;
+
+	vObjectBuffer.push_back(allObjBuffer);
+
 	return hr;
 }
 

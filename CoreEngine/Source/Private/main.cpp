@@ -69,6 +69,7 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		LOG("INFO: CoreRenderer instantiated !!! \n")
 		
 		coreRenderer->CreateDeviceDependentResources();
+		coreRenderer->CreateGraphicalResources();
 
 		// We have a window, so initialize window size-dependent resources.
 		hr = coreDevice->CreateWindowResources(coreWindow->GetWindowHandle());

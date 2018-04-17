@@ -21,6 +21,7 @@ struct PixelShaderInput
 	float3 posW		: POSITION0;
 	float4 normal	: NORMAL0;
 	float3 color	: COLOR0;
+	float2 texcoord : TEXCOORD0;
 };
 
 // Simple shader to do vertex processing on the GPU.
