@@ -57,7 +57,7 @@ PixelShaderInput main(VertexShaderInput input)
 
 	// Transform normal vector
 	{
-		float4 normal = float4(input.normal, 0.0f);
+		float4 normal = normalize(float4(input.normal, 0.0f));
 
 		normal = mul(normal, world);
 		output.normal = normal;

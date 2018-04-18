@@ -45,12 +45,14 @@ private:
 	void AssemblyObject(const char *filename);
 	void AssemblyAllObject(const char *filename);
 	void AssemblyTexObject(const char *filename);
+	void AssemblyTexObjectWithIndices(const char *filename);
 
 	HRESULT CreateShaders();
 
 	HRESULT CreateObjectBuffer(Object *obj);
 	HRESULT CreateAllObjectBuffer(Object *obj);
 	HRESULT CreateTexObjectBuffer(Object *obj);
+	HRESULT CreateTexObjectBufferWithIndices(Object *obj);
 
 	void    CreateViewAndPerspective();
 	void    RenderObjects(coreObjectBuffer *objBuffer);

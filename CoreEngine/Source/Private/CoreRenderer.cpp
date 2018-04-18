@@ -46,7 +46,9 @@ void CoreRenderer::CreateGraphicalResources()
 	auto AssemblyObjectsTask = Concurrency::create_task(
 		[this]()
 	{
-		AssemblyTexObject("Resources/Monkey.obj");
+		//AssemblyTexObject("Resources/Monkey.obj");
+		AssemblyTexObjectWithIndices("Resources/Monkey.obj");
+
 	}
 	);
 
@@ -97,6 +99,13 @@ void CoreRenderer::AssemblyTexObject(const char * filename)
 	obj.LoadTexObjectFromFile(filename);
 	obj.SetColor(1.0f, 0.0f, 0.0f);
 	CreateTexObjectBuffer(&obj);
+}
+
+void CoreRenderer::AssemblyTexObjectWithIndices(const char * filename)
+{
+	Object obj;
+	obj.LoadTexObjectWithIndicesFromFile(filename);
+	CreateTexObjectBufferWithIndices(&obj);
 }
 
 void CoreRenderer::TranslateWorld(float axisX, float axisY, float axisZ)
@@ -290,7 +299,7 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 
 	ResetWorld();
 	//RotateWorld(0.0f, 3.14, 0.0f);
-	RotateWorld(the_time, the_time, 0.0f);
+	RotateWorld(0.0f, the_time, 0.0f);
 	//TranslateWorld(5.0f, 10.0f, -20.0f);
 	//ScaleWorld(0.2, 0.2, 0.2);
 	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
@@ -571,7 +580,7 @@ HRESULT CoreRenderer::CreateTexObjectBuffer(Object * obj)
 
 	ID3D11Device* device = coreDevice->GetDevice();
 
-	coreObjectBuffer allObjBuffer;
+	coreObjectBuffer TexObjBuffer;
 
 	// Create vertex buffer:
 	CD3D11_BUFFER_DESC vDesc(
@@ -589,13 +598,69 @@ HRESULT CoreRenderer::CreateTexObjectBuffer(Object * obj)
 	hr = device->CreateBuffer(
 		&vDesc,
 		&vData,
-		&allObjBuffer.objectVertexBuffer
+		&TexObjBuffer.objectVertexBuffer
 	);
 
-	allObjBuffer.verticesCount = obj->getTexVerticesCount();
-	allObjBuffer.withIndices = false;
+	TexObjBuffer.verticesCount = obj->getTexVerticesCount();
+	TexObjBuffer.withIndices = false;
 
-	vObjectBuffer.push_back(allObjBuffer);
+	vObjectBuffer.push_back(TexObjBuffer);
+
+	return hr;
+}
+
+HRESULT CoreRenderer::CreateTexObjectBufferWithIndices(Object * obj)
+{
+	HRESULT hr = S_OK;
+
+	ID3D11Device* device = coreDevice->GetDevice();
+
+	coreObjectBuffer TexObjBuffer;
+
+	// Create vertex buffer:
+	CD3D11_BUFFER_DESC vDesc(
+		sizeof(*(obj->getTexVertices())) * obj->getTexVerticesCount(),
+		D3D11_BIND_VERTEX_BUFFER,
+		D3D11_USAGE_IMMUTABLE
+	);
+
+	D3D11_SUBRESOURCE_DATA vData;
+	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
+	vData.pSysMem = obj->getTexVertices();
+	vData.SysMemPitch = 0;
+	vData.SysMemSlicePitch = 0;
+
+	hr = device->CreateBuffer(
+		&vDesc,
+		&vData,
+		&TexObjBuffer.objectVertexBuffer
+	);
+
+	TexObjBuffer.verticesCount = obj->getTexVerticesCount();
+
+	//create index buffer
+	CD3D11_BUFFER_DESC iDesc(
+		sizeof(*(obj->getIndices())) * obj->getIndicesCount(),
+		D3D11_BIND_INDEX_BUFFER
+	);
+
+	D3D11_SUBRESOURCE_DATA iData;
+	ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
+	iData.pSysMem = obj->getIndices();
+	iData.SysMemPitch = 0;
+	iData.SysMemSlicePitch = 0;
+
+	hr = device->CreateBuffer(
+		&iDesc,
+		&iData,
+		&TexObjBuffer.objectIndexBuffer
+	);
+
+	TexObjBuffer.indicesCount = obj->getIndicesCount();
+	TexObjBuffer.withIndices = true;
+
+	// insert object into the vector
+	vObjectBuffer.push_back(TexObjBuffer);
 
 	return hr;
 }

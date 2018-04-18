@@ -27,21 +27,22 @@ public:
 	void LoadObjectFromFile(const char* filename);
 	void LoadAllObjectFromFile(const char* filename);
 	void LoadTexObjectFromFile(const char* filename);
+	void LoadTexObjectWithIndicesFromFile(const char* filename);
 
 private:
 
 	VertexPositionNormalColor		*objectVertices;
 	unsigned int		 			verticesCount;
-
-	unsigned short					*objectIndices;
-	unsigned int					indicesCount;
-
-	// without indices
+	
 	VertexPositionNormalColor		*allObjectVertices;
 	unsigned int					allVerticesCount;
 	
 	VertexPosNorColTex				*texObjectVertices;
 	unsigned int		 			texVerticesCount;
+
+	// indices
+	unsigned short					*objectIndices;
+	unsigned int					indicesCount;
 
 	bool							isLoaded;
 	
