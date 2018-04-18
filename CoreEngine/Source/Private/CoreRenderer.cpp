@@ -68,6 +68,14 @@ void CoreRenderer::CreateGraphicalResources()
 			mSRV.GetAddressOf()
 		);
 
+		CreateDDSTextureFromFile(
+			device,
+			context,
+			L"Resources/MonkeyDiffuse2.dds",
+			(ID3D11Resource**)mTexture2.GetAddressOf(),
+			mSRV2.GetAddressOf()
+		);
+
 	}
 	);
 }
@@ -269,10 +277,17 @@ void CoreRenderer::Render()
 		1,
 		mSamplerState.GetAddressOf());
 
+	// set Textures
 	context->PSSetShaderResources(
 		0,
 		1,
 		mSRV.GetAddressOf()
+	);
+
+	context->PSSetShaderResources(
+		1,
+		1,
+		mSRV2.GetAddressOf()
 	);
 
 	for (auto& obj : vObjectBuffer)

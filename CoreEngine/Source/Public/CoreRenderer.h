@@ -94,6 +94,10 @@ private:
 
 	ComPtr<ID3D11Texture2D>				mTexture;
 	ComPtr<ID3D11ShaderResourceView>	mSRV;
+
+	ComPtr<ID3D11Texture2D>				mTexture2;
+	ComPtr<ID3D11ShaderResourceView>	mSRV2;
+
 	ComPtr<ID3D11SamplerState>			mSamplerState;
 
 };

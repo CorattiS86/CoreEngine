@@ -47,27 +47,12 @@ struct Material
 	float3 specularColor; float specularPower;
 };
 
-SamplerState samplerState : register(s0)
-{
-	// Use linear filtering for minification, magnification, and mipmapping.
-	//Filter = MIN_MAG_MIP_LINEAR;
+SamplerState samplerState		: register(s0);
+SamplerState samplerAnisotropic : register(s1);
 
-	// Use linear filtering for minification, point filtering for magnification,
-	// and point filtering for mipmapping.
-	//Filter = MIN_LINEAR_MAG_MIP_POINT;
-
-	// Use point filtering for minification, linear filtering for magnification,
-	// and point filtering for mipmapping.
-	//Filter = MIN_POINT_MAG_LINEAR_MIP_POINT;
-};
-
-SamplerState samplerAnisotropic : register(s1)
-{
-	Filter = ANISOTROPIC;
-	MaxAnisotropy = 4;
-};
 
 texture2D diffuseMap : register(t0);
+texture2D secondMap  : register(t1);
 
 
 
@@ -78,7 +63,11 @@ float3 main(PixelShaderInput input) : SV_TARGET
 	input.normal = normalize(input.normal);
 
 	Material mat;
-	mat.diffuseColor	= diffuseMap.Sample(samplerState, input.texcoord);
+
+	float3 diffuse1 = diffuseMap.Sample(samplerState, input.texcoord);
+	float3 diffuse2 = secondMap.Sample(samplerState, input.texcoord);
+
+	mat.diffuseColor = diffuse2;
 	//mat.diffuseColor	= float3(input.color);
 	mat.specularColor	= float3(1.0f, 1.0f, 1.0f);
 	mat.specularPower	= 64;
