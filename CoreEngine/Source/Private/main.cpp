@@ -66,6 +66,7 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		
 		// Instantiate the renderer.
 		shared_ptr<CoreRenderer> coreRenderer = shared_ptr<CoreRenderer>(new CoreRenderer(coreDevice));
+
 		LOG("INFO: CoreRenderer instantiated !!! \n")
 		
 		coreRenderer->CreateDeviceDependentResources();

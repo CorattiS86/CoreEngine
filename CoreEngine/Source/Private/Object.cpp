@@ -549,7 +549,7 @@ void Object::LoadTexObjectFromFile(const char * filename)
 
 				faceTexcoords[faceTexcoordsCount] = XMFLOAT2(
 					atof(u.c_str()), 
-					atof(v.c_str())
+					1 - atof(v.c_str())
 				);
 
 				++faceTexcoordsCount;

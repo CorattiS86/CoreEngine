@@ -12,6 +12,7 @@ struct VertexShaderInput
 	float3 pos		: POSITION;
 	float3 normal	: NORMAL0;
 	float3 color	: COLOR0;
+	float2 texcoord : TEXCOORD0;
 };
 
 // Per-pixel color data passed through the pixel shader.
@@ -70,6 +71,8 @@ PixelShaderInput main(VertexShaderInput input)
 
 		output.posW = pos;
 	}
+
+	output.texcoord = input.texcoord;
 
 	// Pass the color through without modification.
 	output.color = input.color;

@@ -1,5 +1,6 @@
 #include "CoreRenderer.h"
 #include "CoreUtils.h"
+#include "DDSTextureLoader.h"
 #include <ppltasks.h>
 #include <string>
 #include <iostream>
@@ -45,10 +46,24 @@ void CoreRenderer::CreateGraphicalResources()
 	auto AssemblyObjectsTask = Concurrency::create_task(
 		[this]()
 	{
-		//AssemblyObject("CubeT.obj");
-		//AssemblyAllObject("Resources/Plane.obj");
-		AssemblyTexObject("Resources/CubeUV.obj");
-		//AssemblyObject("Resources/Sphere.obj");
+		AssemblyTexObject("Resources/Monkey.obj");
+	}
+	);
+
+	auto LoadTextureTask = Concurrency::create_task(
+		[this]()
+	{
+		ID3D11Device*        device	 = coreDevice->GetDevice();
+		ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
+
+		CreateDDSTextureFromFile(
+			device,
+			context,
+			L"Resources/MonkeyDiffuse.dds",
+			(ID3D11Resource**)mTexture.GetAddressOf(),
+			mSRV.GetAddressOf()
+		);
+
 	}
 	);
 }
@@ -56,7 +71,7 @@ void CoreRenderer::CreateGraphicalResources()
 void CoreRenderer::Update()
 {
 	core_frameCount++;
-
+	
 	if (core_frameCount >= MAXUINT)  core_frameCount = 0;
 }
 
@@ -239,6 +254,17 @@ void CoreRenderer::Render()
 		0
 	);
 
+	context->PSSetSamplers(
+		0,
+		1,
+		mSamplerState.GetAddressOf());
+
+	context->PSSetShaderResources(
+		0,
+		1,
+		mSRV.GetAddressOf()
+	);
+
 	for (auto& obj : vObjectBuffer)
 	{
 		RenderObjects(&obj);
@@ -264,7 +290,7 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 
 	ResetWorld();
 	//RotateWorld(0.0f, 3.14, 0.0f);
-	RotateWorld(0.0f, the_time, 0.0f);
+	RotateWorld(the_time, the_time, 0.0f);
 	//TranslateWorld(5.0f, 10.0f, -20.0f);
 	//ScaleWorld(0.2, 0.2, 0.2);
 	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
@@ -425,6 +451,22 @@ HRESULT CoreRenderer::CreateShaders()
 		&cbDesc2,
 		nullptr,
 		core_pOtherConstantBuffer.GetAddressOf()
+	);
+
+	D3D11_SAMPLER_DESC samplerDesc;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerDesc.MinLOD = -FLT_MAX;
+	samplerDesc.MaxLOD = FLT_MAX;
+
+	device->CreateSamplerState(
+		&samplerDesc,
+		mSamplerState.GetAddressOf()	
 	);
 
 	fclose(vShader);
