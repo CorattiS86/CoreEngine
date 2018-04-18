@@ -148,6 +148,5 @@ LRESULT CALLBACK CoreWindow::CoreWindowProcedure(
 		PostQuitMessage(0);
 		break;
 	}
-
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }

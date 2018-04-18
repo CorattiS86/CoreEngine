@@ -50,7 +50,7 @@ struct Material
 SamplerState samplerState : register(s0)
 {
 	// Use linear filtering for minification, magnification, and mipmapping.
-	Filter = MIN_MAG_MIP_LINEAR;
+	//Filter = MIN_MAG_MIP_LINEAR;
 
 	// Use linear filtering for minification, point filtering for magnification,
 	// and point filtering for mipmapping.
@@ -91,7 +91,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		DirectionalLight l_Directional;
 		l_Directional.diffuseColor		= float3(1.0f, 1.0f, 1.0f);
 		l_Directional.specularColor		= float3(1.0f, 1.0f, 1.0f);
-		l_Directional.lightDirection	= normalize(float3(5.0f, 5.0f, 3.0f)); //all vector must be normalized
+		l_Directional.lightDirection	= normalize(float3(1.0f, 5.0f, 3.0f)); //all vector must be normalized
 
 		float cos_LN = dot(l_Directional.lightDirection, input.normal);
 

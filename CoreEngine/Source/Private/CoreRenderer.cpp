@@ -46,9 +46,11 @@ void CoreRenderer::CreateGraphicalResources()
 	auto AssemblyObjectsTask = Concurrency::create_task(
 		[this]()
 	{
-		//AssemblyTexObject("Resources/Monkey.obj");
-		AssemblyTexObjectWithIndices("Resources/Monkey.obj");
-
+		AssemblyTexObject("Resources/MonkeySmooth.obj");
+		
+		//AssemblyTexObject("Resources/CubeUV.obj");
+		
+		//AssemblyTexObject("Resources/Plane.obj");
 	}
 	);
 
@@ -97,7 +99,6 @@ void CoreRenderer::AssemblyTexObject(const char * filename)
 {
 	Object obj;
 	obj.LoadTexObjectFromFile(filename);
-	obj.SetColor(1.0f, 0.0f, 0.0f);
 	CreateTexObjectBuffer(&obj);
 }
 
@@ -298,10 +299,9 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 		the_time = 0.0f;
 
 	ResetWorld();
-	//RotateWorld(0.0f, 3.14, 0.0f);
-	RotateWorld(0.0f, the_time, 0.0f);
-	//TranslateWorld(5.0f, 10.0f, -20.0f);
-	//ScaleWorld(0.2, 0.2, 0.2);
+	//RotateWorld(0.0f, 0.0f, 3.14f/2);
+	RotateWorld(-the_time, -the_time, -the_time);
+	//TranslateWorld(0.0f, 0.0f, -abs( 50 * sin(the_time)));
 	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
 
 	context->UpdateSubresource(

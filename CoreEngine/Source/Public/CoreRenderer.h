@@ -89,7 +89,7 @@ private:
 	ComPtr<ID3D11RasterizerState>	core_pRasterStateFillMode;
 
 	XMVECTOR up		= XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
-	XMVECTOR eye	= XMVectorSet(0.0f, 2.0f, 5.0f, 0.f);
+	XMVECTOR eye	= XMVectorSet(0.0f, 0.0f, 5.0f, 0.f);
 	XMVECTOR at		= XMVectorSet(0.0f, 0.0f, 0.0f, 0.f);
 
 	ComPtr<ID3D11Texture2D>				mTexture;
