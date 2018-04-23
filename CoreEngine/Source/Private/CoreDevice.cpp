@@ -163,7 +163,7 @@ HRESULT CoreDevice::ConfigureBackBuffer()
 		1,
 		&core_sViewport
 	);
-
+	
 	return hr;
 }
 

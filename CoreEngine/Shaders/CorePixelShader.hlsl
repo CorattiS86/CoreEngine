@@ -67,7 +67,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 	float3 diffuse1 = diffuseMap.Sample(samplerState, input.texcoord);
 	float3 diffuse2 = secondMap.Sample(samplerState, input.texcoord);
 
-	mat.diffuseColor = diffuse2;
+	mat.diffuseColor = diffuse1;
 	//mat.diffuseColor	= float3(input.color);
 	mat.specularColor	= float3(1.0f, 1.0f, 1.0f);
 	mat.specularPower	= 64;
@@ -82,7 +82,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		l_Directional.specularColor		= float3(1.0f, 1.0f, 1.0f);
 		l_Directional.lightDirection	= normalize(float3(1.0f, 5.0f, 3.0f)); //all vector must be normalized
 
-		float cos_LN = dot(l_Directional.lightDirection, input.normal);
+		float cos_LN = dot(l_Directional.lightDirection, input.normal.xyz);
 
 		float Kd = max(cos_LN, 0);
 		D += Kd * l_Directional.diffuseColor * mat.diffuseColor;
@@ -91,7 +91,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		if(cos_LN > 0.0f)
 		{
 			float3	V	= normalize(eyePosition);
-			float3  R	= reflect(-l_Directional.lightDirection, input.normal); // reflect require the sign minus for direction
+			float3  R	= reflect(-l_Directional.lightDirection, input.normal.xyz); // reflect require the sign minus for direction
 			float	Ks  = pow(max(dot(R, V), 0), mat.specularPower);
 
 			S += Ks * l_Directional.specularColor * mat.specularColor;
@@ -111,7 +111,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 			float3(	l_Point.lightPosition - input.posW )
 		);
 
-		float  cos_LN		= dot( direction, input.normal);
+		float  cos_LN		= dot( direction, input.normal.xyz);
 		float  d			= length(l_Point.lightPosition - float3(input.posW.x, input.posW.y, input.posW.z));
 
 		float  Kd = 0.0f;
@@ -125,7 +125,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		if (cos_LN > 0.0f)
 		{
 			float3	V = normalize(eyePosition);
-			float3  R = reflect(-direction, input.normal); // reflect require the sign minus for direction
+			float3  R = reflect(-direction, input.normal.xyz); // reflect require the sign minus for direction
 			float	Ks = pow(max(dot(R, V), 0), mat.specularPower) / d;
 
 			//S += Ks * l_Point.specularColor * mat.specularColor;
@@ -157,7 +157,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 			//D += Kd * l_Spot.diffuseColor * mat.diffuseColor;
 	
 			float3	V = normalize(eyePosition);
-			float3  R = reflect(-direction, input.normal); // reflect require the sign inus for direction
+			float3  R = reflect(-direction, input.normal.xyz); // reflect require the sign inus for direction
 			float	Ks = pow(max(dot(R, V), 0), mat.specularPower) / d;
 
 			//S += Ks * l_Spot.specularColor * mat.specularColor;

@@ -13,10 +13,7 @@ using namespace DirectX;
 CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	:core_frameCount(0),
 	 coreDevice(coreDevice)
-{
-	core_frameCount = 0; // init frame count
-	ResetWorld();
-	
+{	
 }
 
 CoreRenderer::~CoreRenderer()
@@ -218,13 +215,11 @@ void CoreRenderer::SetStates()
 
 void CoreRenderer::Render()
 {
-	// Use the Direct3D device context to draw.
+	ID3D11Device* device = coreDevice->GetDevice();
 	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
 
 	ID3D11RenderTargetView* renderTarget = coreDevice->GetRenderTarget();
 	ID3D11DepthStencilView* depthStencil = coreDevice->GetDepthStencil();
-
-	ID3D11Device* device = coreDevice->GetDevice();
 
 	// Clear the render target and the z-buffer.
 	const float teal[] = { 0.098f, 0.439f, 0.439f, 1.000f };
@@ -439,7 +434,6 @@ HRESULT CoreRenderer::CreateShaders()
 
 	delete bytes;
 
-
 	bytes = new BYTE[destSize];
 	bytesRead = 0;
 	fopen_s(&pShader, "Shaders/Compiled/CorePixelShader.cso", "rb");
@@ -490,7 +484,7 @@ HRESULT CoreRenderer::CreateShaders()
 
 	device->CreateSamplerState(
 		&samplerDesc,
-		mSamplerState.GetAddressOf()	
+		mSamplerState.GetAddressOf()
 	);
 
 	fclose(vShader);

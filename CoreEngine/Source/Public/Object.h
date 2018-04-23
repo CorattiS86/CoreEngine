@@ -46,5 +46,7 @@ private:
 
 	bool							isLoaded;
 	
+
+
 };
 
