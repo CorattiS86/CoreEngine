@@ -168,7 +168,9 @@
     <ClInclude Include="Source\Public\CoreWindow.h" />
     <ClInclude Include="Source\Public\DDSTextureLoader.h" />
     <ClInclude Include="Source\Public\Object.h" />
+    <ClInclude Include="Source\Public\RenderableObject.h" />
     <ClInclude Include="Source\Public\Resource.h" />
+    <ClInclude Include="Source\Public\ShadowMap.h" />
     <ClInclude Include="Source\Public\stdafx.h" />
     <ClInclude Include="Source\Public\targetver.h" />
   </ItemGroup>
@@ -180,6 +182,8 @@
     <ClCompile Include="Source\Private\DDSTextureLoader.cpp" />
     <ClCompile Include="Source\Private\main.cpp" />
     <ClCompile Include="Source\Private\Object.cpp" />
+    <ClCompile Include="Source\Private\RenderableObject.cpp" />
+    <ClCompile Include="Source\Private\ShadowMap.cpp" />
     <ClCompile Include="Source\Private\stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>

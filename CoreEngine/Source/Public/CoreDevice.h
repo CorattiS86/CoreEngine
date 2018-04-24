@@ -21,11 +21,12 @@ public:
 
 	float GetAspectRatio();
 
-	ID3D11Device*           GetDevice()        { return core_pDevice.Get(); };
-	ID3D11DeviceContext*    GetDeviceContext() { return core_pContext.Get(); };
-	ID3D11RenderTargetView* GetRenderTarget()  { return core_pRTV.Get(); }
-	ID3D11DepthStencilView* GetDepthStencil()  { return core_pDSV.Get(); }
-	D3D_FEATURE_LEVEL       GetFeatureLevel()  { return core_eFeatureLevel; }
+	ID3D11Device*           GetDevice()			{ return core_pDevice.Get(); };
+	ID3D11DeviceContext*    GetDeviceContext()	{ return core_pContext.Get(); };
+	ID3D11RenderTargetView* GetRenderTarget()	{ return core_pRTV.Get(); }
+	ID3D11DepthStencilView* GetDepthStencil()	{ return core_pDSV.Get(); }
+	D3D11_VIEWPORT&			GetViewport()		{ return core_sViewport; }
+	D3D_FEATURE_LEVEL       GetFeatureLevel()	{ return core_eFeatureLevel; }
 
 	void Present();
 

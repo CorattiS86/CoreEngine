@@ -18,4 +18,6 @@
 #endif
 
 
+#define HR(x) if( x < 0) { OutputDebugStringA("\n"); OutputDebugStringA("FAILURE: "); OutputDebugStringA("\n"); return; }
+
 #endif // !CORE_UTILS

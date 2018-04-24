@@ -24,8 +24,6 @@ public:
 	VertexPosNorColTex*			getTexVertices()	  { return texObjectVertices; }
 	unsigned int				getTexVerticesCount() { return texVerticesCount; }
 
-	void LoadObjectFromFile(const char* filename);
-	void LoadAllObjectFromFile(const char* filename);
 	void LoadTexObjectFromFile(const char* filename);
 	void LoadTexObjectWithIndicesFromFile(const char* filename);
 

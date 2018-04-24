@@ -6,14 +6,16 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "ShadowMap.h"
 
 using namespace std;
 using namespace DirectX;
 
 CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
-	:core_frameCount(0),
-	 coreDevice(coreDevice)
+	: core_frameCount(0)
+	, coreDevice(coreDevice)
 {	
+
 }
 
 CoreRenderer::~CoreRenderer()
@@ -82,22 +84,6 @@ void CoreRenderer::Update()
 	core_frameCount++;
 	
 	if (core_frameCount >= MAXUINT)  core_frameCount = 0;
-}
-
-void CoreRenderer::AssemblyObject(const char * filename)
-{
-	Object obj;
-	obj.LoadObjectFromFile(filename);
-	obj.SetColor(1.0f, 1.0f, 0.0f);
-	CreateObjectBuffer(&obj);
-}
-
-void CoreRenderer::AssemblyAllObject(const char * filename)
-{
-	Object obj;
-	obj.LoadAllObjectFromFile(filename);
-	obj.SetColor(1.0f, 1.0f, 0.0f);
-	CreateAllObjectBuffer(&obj);
 }
 
 void CoreRenderer::AssemblyTexObject(const char * filename)
@@ -270,7 +256,8 @@ void CoreRenderer::Render()
 	context->PSSetSamplers(
 		0,
 		1,
-		mSamplerState.GetAddressOf());
+		mSamplerState.GetAddressOf()
+	);
 
 	// set Textures
 	context->PSSetShaderResources(
@@ -296,15 +283,8 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 {
 	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
 
-	//////////////////////////////////////////////////
-	context->VSSetConstantBuffers(
-		0,
-		1,
-		core_pConstantBuffer.GetAddressOf()
-	);
-
 	static float the_time = 0.0f;
-	the_time += 3.14 / 180;
+	the_time += 3.14f / 180;
 	if (the_time >= 3.14 * 2)
 		the_time = 0.0f;
 
@@ -323,13 +303,13 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 		0
 	);
 
-	//////////////////////////////////////////////////
-	context->PSSetConstantBuffers(
+	context->VSSetConstantBuffers(
 		0,
 		1,
-		core_pOtherConstantBuffer.GetAddressOf()
+		core_pConstantBuffer.GetAddressOf()
 	);
 
+	//////////////////////////////////////////////////
 	UpdateOtherConstantBuffer();
 	 
 	context->UpdateSubresource(
@@ -340,6 +320,13 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 		0,
 		0
 	);
+
+	context->PSSetConstantBuffers(
+		0,
+		1,
+		core_pOtherConstantBuffer.GetAddressOf()
+	);
+
 	//////////////////////////////////////////////////
 
 	// Set up the IA stage by setting the input topology and layout.
@@ -404,7 +391,7 @@ HRESULT CoreRenderer::CreateShaders()
 		bytes,
 		bytesRead,
 		nullptr,
-		&core_pVertexShader
+		core_pVertexShader.GetAddressOf()
 	);
 	 
 	LOG_STR_1("VERTEX SHADER BYTES READ: %d \n", bytesRead)
@@ -429,7 +416,7 @@ HRESULT CoreRenderer::CreateShaders()
 		ARRAYSIZE(iaDesc),
 		bytes,
 		bytesRead,
-		&core_pInputLayout
+		core_pInputLayout.GetAddressOf()
 	);
 
 	delete bytes;
@@ -493,95 +480,6 @@ HRESULT CoreRenderer::CreateShaders()
 	return hr;
 }
 
-HRESULT CoreRenderer::CreateObjectBuffer(Object *obj)
-{
-	HRESULT hr = S_OK;	
-	
-	ID3D11Device* device = coreDevice->GetDevice();
-	
-	coreObjectBuffer objBuffer;
-	
-	// Create vertex buffer:
-	CD3D11_BUFFER_DESC vDesc(
-		sizeof(*(obj->getVertices())) * obj->getVerticesCount(),
-		D3D11_BIND_VERTEX_BUFFER,
-		D3D11_USAGE_IMMUTABLE
-	);
-
-	D3D11_SUBRESOURCE_DATA vData;
-	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
-	vData.pSysMem = obj->getVertices();
-	vData.SysMemPitch = 0;
-	vData.SysMemSlicePitch = 0;
-
-	hr = device->CreateBuffer(
-		&vDesc,
-		&vData,
-		&objBuffer.objectVertexBuffer
-	);
-
-	objBuffer.verticesCount = obj->getVerticesCount();
-
-	//create index buffer
-	CD3D11_BUFFER_DESC iDesc(
-		sizeof(*(obj->getIndices())) * obj->getIndicesCount(),
-		D3D11_BIND_INDEX_BUFFER
-	);
-
-	D3D11_SUBRESOURCE_DATA iData;
-	ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
-	iData.pSysMem = obj->getIndices();
-	iData.SysMemPitch = 0;
-	iData.SysMemSlicePitch = 0;
-
-	hr = device->CreateBuffer(
-		&iDesc,
-		&iData,
-		&objBuffer.objectIndexBuffer
-	);
-
-	objBuffer.indicesCount = obj->getIndicesCount();
-	objBuffer.withIndices  = true;
-
-	vObjectBuffer.push_back(objBuffer);
-
-	return hr;
-}
-
-HRESULT CoreRenderer::CreateAllObjectBuffer(Object *obj)
-{
-	HRESULT hr = S_OK;
-
-	ID3D11Device* device = coreDevice->GetDevice();
-	
-	coreObjectBuffer allObjBuffer;
-
-	// Create vertex buffer:
-	CD3D11_BUFFER_DESC vDesc(
-		sizeof(*(obj->getAllVertices())) * obj->getAllVerticesCount(),
-		D3D11_BIND_VERTEX_BUFFER,
-		D3D11_USAGE_IMMUTABLE
-	);
-
-	D3D11_SUBRESOURCE_DATA vData;
-	ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
-	vData.pSysMem = obj->getAllVertices();
-	vData.SysMemPitch = 0;
-	vData.SysMemSlicePitch = 0;
-
-	hr = device->CreateBuffer(
-		&vDesc,
-		&vData,
-		&allObjBuffer.objectVertexBuffer
-	);
-
-	allObjBuffer.verticesCount = obj->getAllVerticesCount();
-	allObjBuffer.withIndices   = false;
-
-	vObjectBuffer.push_back(allObjBuffer);
-	
-	return hr;
-}
 
 HRESULT CoreRenderer::CreateTexObjectBuffer(Object * obj)
 {
