@@ -167,9 +167,12 @@
     <ClInclude Include="Source\Public\CoreUtils.h" />
     <ClInclude Include="Source\Public\CoreWindow.h" />
     <ClInclude Include="Source\Public\DDSTextureLoader.h" />
+    <ClInclude Include="Source\Public\DirectXTex.h" />
     <ClInclude Include="Source\Public\Object.h" />
+    <ClInclude Include="Source\Public\Renderable.h" />
     <ClInclude Include="Source\Public\RenderableObject.h" />
     <ClInclude Include="Source\Public\Resource.h" />
+    <ClInclude Include="Source\Public\ScreenGrab.h" />
     <ClInclude Include="Source\Public\ShadowMap.h" />
     <ClInclude Include="Source\Public\stdafx.h" />
     <ClInclude Include="Source\Public\targetver.h" />
@@ -183,6 +186,7 @@
     <ClCompile Include="Source\Private\main.cpp" />
     <ClCompile Include="Source\Private\Object.cpp" />
     <ClCompile Include="Source\Private\RenderableObject.cpp" />
+    <ClCompile Include="Source\Private\ScreenGrab.cpp" />
     <ClCompile Include="Source\Private\ShadowMap.cpp" />
     <ClCompile Include="Source\Private\stdafx.cpp" />
   </ItemGroup>
@@ -200,6 +204,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="Shaders\CoreVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shaders\TestPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shaders\TestVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

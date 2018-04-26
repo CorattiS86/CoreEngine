@@ -206,6 +206,7 @@ void CoreRenderer::Render()
 
 	ID3D11RenderTargetView* renderTarget = coreDevice->GetRenderTarget();
 	ID3D11DepthStencilView* depthStencil = coreDevice->GetDepthStencil();
+	D3D11_VIEWPORT			viewport	 = coreDevice->GetViewport();
 
 	// Clear the render target and the z-buffer.
 	const float teal[] = { 0.098f, 0.439f, 0.439f, 1.000f };
@@ -235,6 +236,11 @@ void CoreRenderer::Render()
 		1,
 		&renderTarget,
 		depthStencil
+	);
+
+	context->RSSetViewports(
+		1,
+		&viewport
 	);
 
 	context->IASetInputLayout(core_pInputLayout.Get());

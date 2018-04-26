@@ -158,11 +158,6 @@ HRESULT CoreDevice::ConfigureBackBuffer()
 	core_sViewport.Width = (float)core_sBackBufferDesc.Width;
 	core_sViewport.MinDepth = 0.0f;
 	core_sViewport.MaxDepth = 1.0f;
-
-	core_pContext->RSSetViewports(
-		1,
-		&core_sViewport
-	);
 	
 	return hr;
 }

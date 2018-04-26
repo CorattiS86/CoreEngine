@@ -7,16 +7,12 @@
 
 using namespace std;
 
-Object::Object() :
-	verticesCount(0),
-	indicesCount(0),
-	allVerticesCount(0),
-	texVerticesCount(0),
-	isLoaded(false),
-	objectVertices(nullptr),
-	allObjectVertices(nullptr),
-	objectIndices(nullptr),
-	texObjectVertices(nullptr)
+Object::Object() 
+	: texVerticesCount(0)
+	, indicesCount(0)
+	, isLoaded(false)
+	, objectIndices(nullptr)
+	, texObjectVertices(nullptr)
 {
 	
 }
@@ -24,37 +20,20 @@ Object::Object() :
 
 Object::~Object()
 {
-	delete[] objectVertices;
-	delete[] objectIndices;
-	delete[] allObjectVertices;
 	delete[] texObjectVertices;
+	delete[] objectIndices;	
 }
 
 void Object::SetColor(float red, float green, float blue)
 {
-	for (size_t i = 0; i < verticesCount; i++)
+	for (size_t i = 0; i < texVerticesCount; i++)
 	{
-		objectVertices[i].color    = XMFLOAT3(red, green, blue);
-	}
-
-	for (size_t i = 0; i < allVerticesCount; i++)
-	{
-		allObjectVertices[i].color = XMFLOAT3(red, green, blue);
-	}
+		texObjectVertices[i].color    = XMFLOAT3(red, green, blue);
+	}	
 }
 
 void Object::SetNormal(float nx, float ny, float nz)
 {
-	for (size_t i = 0; i < verticesCount; i++)
-	{
-		objectVertices[i].normal = XMFLOAT3(nx, ny, nz);
-	}
-
-	for (size_t i = 0; i < allVerticesCount; i++)
-	{
-		allObjectVertices[i].normal = XMFLOAT3(nx, ny, nz);
-	}
-
 	for (size_t i = 0; i < texVerticesCount; i++)
 	{
 		texObjectVertices[i].normal = XMFLOAT3(nx, ny, nz);

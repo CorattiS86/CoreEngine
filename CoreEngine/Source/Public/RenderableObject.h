@@ -43,23 +43,24 @@ private:
 	UINT mWidth;
 	UINT mHeight;
 
+	D3D11_VIEWPORT						mViewport;
+
 	ComPtr<ID3D11RenderTargetView>		mRTV;
 	ComPtr<ID3D11DepthStencilView>		mDSV;
 	ComPtr<ID3D11ShaderResourceView>	mSRV;
-
-	D3D11_VIEWPORT						mViewport;
 	
 	ComPtr<ID3D11Buffer>				mVertexBuffer;
 	unsigned int						mVerticesCount;
 	ComPtr<ID3D11Buffer>				mIndexBuffer;
 	unsigned int						mIndicesCount;
 	bool								bIsWithIndices;
+
+	ComPtr<ID3D11InputLayout>			mInputLayout;	
 	UINT								mStride;
 	UINT								mOffset;
 
 	ComPtr<ID3D11SamplerState>			mSamplerState;
 	ComPtr<ID3D11Buffer>				mConstantBuffer0;
-	ComPtr<ID3D11InputLayout>			mInputLayout;
 	ComPtr<ID3D11VertexShader>			mVertexShader;
 	ComPtr<ID3D11PixelShader>			mPixelShader;
 };

@@ -16,6 +16,10 @@ RenderableObject::RenderableObject(
 	mViewport	= coreDevice->GetViewport();
 	mRTV		= coreDevice->GetRenderTarget();
 	mDSV		= coreDevice->GetDepthStencil();
+	
+	CreateVertexBuffer("Resources/Monkey.obj");
+	SetShaders();
+	BindResources();
 }
 
 RenderableObject::~RenderableObject()
@@ -33,6 +37,7 @@ void RenderableObject::CreateVertexBuffer(const char * filename)
 
 	Object obj;
 	obj.LoadTexObjectFromFile(filename);
+	obj.SetColor(0.0f, 1.0f, 0.0f);
 
 	mStride = sizeof(*(obj.getTexVertices()));
 	mOffset = 0;
@@ -83,7 +88,7 @@ void RenderableObject::SetShaders()
 		size_t bytesRead = 0;
 		bytes = new BYTE[destSize];
 
-		fopen_s(&vShader, "Shaders/Compiled/TestShader.cso", "rb");
+		fopen_s(&vShader, "Shaders/Compiled/TestVertexShader.cso", "rb");
 		bytesRead = fread_s(bytes, destSize, 1, destSize, vShader);
 
 		HR(device->CreateVertexShader(
@@ -95,27 +100,20 @@ void RenderableObject::SetShaders()
 
 		LOG_STR_1("VERTEX SHADER BYTES READ: %d \n", bytesRead);
 
+
 		D3D11_INPUT_ELEMENT_DESC iaDesc[] =
 		{
-			{ 
-				"POSITION", 
-				0, 
-				DXGI_FORMAT_R32G32B32_FLOAT,
-				0, 
-				0, 
-				D3D11_INPUT_PER_VERTEX_DATA,
-				0 
-			},
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+			0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 
-			{ 
-				"COLOR", 
-				0, 
-				DXGI_FORMAT_R32G32B32_FLOAT,
-				0, 
-				12, 
-				D3D11_INPUT_PER_VERTEX_DATA, 
-				0 
-			},
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+			0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+
+			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+			0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,
+			0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 
 		};
 
@@ -146,7 +144,7 @@ void RenderableObject::SetShaders()
 		bytes = new BYTE[destSize];
 
 		bytesRead = 0;
-		fopen_s(&pShader, "Shaders/Compiled/TestShader.cso", "rb");
+		fopen_s(&pShader, "Shaders/Compiled/TestPixelShader.cso", "rb");
 		bytesRead = fread_s(bytes, destSize, 1, destSize, pShader);
 		HR(device->CreatePixelShader(
 			bytes,
@@ -213,7 +211,7 @@ void RenderableObject::Render()
 {
 	ID3D11DeviceContext *context = mCoreDevice->GetDeviceContext();
 
-	context->UpdateSubresource(
+	/*context->UpdateSubresource(
 		mConstantBuffer0.Get(),
 		0,
 		nullptr,
@@ -226,7 +224,9 @@ void RenderableObject::Render()
 		0,
 		1,
 		mConstantBuffer0.GetAddressOf()
-	);
+	);*/
+
+	context->IASetInputLayout(mInputLayout.Get());
 
 	context->VSSetShader(
 		mVertexShader.Get(),
