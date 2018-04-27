@@ -21,12 +21,16 @@ public:
 
 	float GetAspectRatio();
 
-	ID3D11Device*           GetDevice()			{ return core_pDevice.Get(); };
-	ID3D11DeviceContext*    GetDeviceContext()	{ return core_pContext.Get(); };
-	ID3D11RenderTargetView* GetRenderTarget()	{ return core_pRTV.Get(); }
-	ID3D11DepthStencilView* GetDepthStencil()	{ return core_pDSV.Get(); }
-	D3D11_VIEWPORT&			GetViewport()		{ return core_sViewport; }
-	D3D_FEATURE_LEVEL       GetFeatureLevel()	{ return core_eFeatureLevel; }
+	ID3D11Device*           GetDevice()						{ return core_pDevice.Get();		}
+	ID3D11DeviceContext*    GetDeviceContext()				{ return core_pContext.Get();		}
+	ID3D11RenderTargetView* GetRenderTarget()				{ return core_pRTV.Get();			}
+	ID3D11DepthStencilView* GetDepthStencil()				{ return core_pDSV.Get();			}
+	D3D11_VIEWPORT&			GetViewport()					{ return core_sViewport;			}
+	D3D_FEATURE_LEVEL       GetFeatureLevel()				{ return core_eFeatureLevel;		}
+	D3D11_TEXTURE2D_DESC	GetBackBufferRTV_TextureDesc()	{ return core_sBackBufferRTV_TextureDesc;	}
+	D3D11_TEXTURE2D_DESC	GetBackBufferDSV_TextureDesc()	{ return core_sBackBufferDSV_TextureDesc;	}
+	ID3D11Texture2D*		GetBackBufferRTV_Texture()		{ return core_pBackBuffer.Get(); }
+	ID3D11Texture2D*		GetBackBufferDSV_Texture()		{ return core_pDepthStencilBuffer.Get(); }
 
 	void Present();
 
@@ -58,7 +62,8 @@ private:
 	// Direct3D device metadata and device resource metadata
 	//-----------------------------------------------------------------------------
 	D3D_FEATURE_LEVEL       core_eFeatureLevel;
-	D3D11_TEXTURE2D_DESC    core_sBackBufferDesc;
+	D3D11_TEXTURE2D_DESC    core_sBackBufferRTV_TextureDesc;
+	D3D11_TEXTURE2D_DESC    core_sBackBufferDSV_TextureDesc;
 	D3D11_VIEWPORT          core_sViewport;
 };
 

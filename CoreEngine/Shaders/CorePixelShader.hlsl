@@ -165,7 +165,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		}
 	}
 	///////////////////////////////////////
-	return D + S;
+	return  D + S;
 
 	
 }

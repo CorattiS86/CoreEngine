@@ -39,7 +39,11 @@ public:
 	void UpdateOtherConstantBuffer();
 	void SetStates();
 	void Render();
-	
+
+
+	void ScreenShotCustom(UINT width, UINT height);
+	void ScreenShotBackBuffer();
+
 private:
 
 	void AssemblyTexObject(const char *filename);
@@ -51,8 +55,10 @@ private:
 	HRESULT CreateTexObjectBufferWithIndices(Object *obj);
 
 	void    CreateViewAndPerspective();
-	void    RenderObjects(coreObjectBuffer *objBuffer);
 
+	void	SetObjectsToRender(coreObjectBuffer *objBuffer);
+	void	SetObjectsToRender2(coreObjectBuffer *objBuffer);
+	void    RenderObjects(coreObjectBuffer *objBuffer);
 
 	vector<coreObjectBuffer> vObjectBuffer;
 

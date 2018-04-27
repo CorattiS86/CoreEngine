@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include "ShadowMap.h"
+#include <ScreenGrab.h>
 
 using namespace std;
 using namespace DirectX;
@@ -195,8 +196,6 @@ void CoreRenderer::SetStates()
 
 	device->CreateRasterizerState(&rsDesc, core_pRasterStateFillMode.GetAddressOf());
 
-	context->RSSetState(core_pRasterStateFillMode.Get());
-	//context->RSSetState(0);
 }
 
 void CoreRenderer::Render()
@@ -209,8 +208,8 @@ void CoreRenderer::Render()
 	D3D11_VIEWPORT			viewport	 = coreDevice->GetViewport();
 
 	// Clear the render target and the z-buffer.
-	const float teal[] = { 0.098f, 0.439f, 0.439f, 1.000f };
-	const float black[] = { 0.0f, 0.0f, 0.0f, 1.000f };
+	const float teal[] = { 0.098f, 0.439f, 0.439f, 1.0f };
+	const float black[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 	const int threshold = 0;
 	static int motionBlur = threshold;
@@ -238,10 +237,10 @@ void CoreRenderer::Render()
 		depthStencil
 	);
 
-	context->RSSetViewports(
+	/*context->RSSetViewports(
 		1,
 		&viewport
-	);
+	);*/
 
 	context->IASetInputLayout(core_pInputLayout.Get());
 
@@ -278,14 +277,48 @@ void CoreRenderer::Render()
 		mSRV2.GetAddressOf()
 	);
 
-	for (auto& obj : vObjectBuffer)
-	{
-		RenderObjects(&obj);
+	context->RSSetState(core_pRasterStateFillMode.Get());
+
+
+	D3D11_VIEWPORT _viewport[2];
+	_viewport[0].Width = 200.0f;
+	_viewport[0].Height = 200.0f;
+	_viewport[0].TopLeftX = 0.0f;
+	_viewport[0].TopLeftY = 0.0f;
+	_viewport[0].MinDepth = 0.0f;
+	_viewport[0].MaxDepth = 1.0f;
+
+	_viewport[1].Width = 200.0f;
+	_viewport[1].Height = 200.0f;
+	_viewport[1].TopLeftX = 200.0f;
+	_viewport[1].TopLeftY = 0.0f;
+	_viewport[1].MinDepth = 0.0f;
+	_viewport[1].MaxDepth = 1.0f;
+
+	for (int k = 0; k < 2; k++) {
+
+		context->RSSetViewports(
+			1,
+			&_viewport[k]
+		);
+
+		for (auto& obj : vObjectBuffer)
+		{
+			SetObjectsToRender(&obj);
+			RenderObjects(&obj);
+		}
 	}
 
+	static int l = 0;
+	l++;
+	if (l > 100) {
+		ScreenShotBackBuffer();
+
+		l = 0;
+	}
 }
 
-void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
+void CoreRenderer::SetObjectsToRender(coreObjectBuffer * objBuffer)
 {
 	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
 
@@ -317,7 +350,7 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 
 	//////////////////////////////////////////////////
 	UpdateOtherConstantBuffer();
-	 
+
 	context->UpdateSubresource(
 		core_pOtherConstantBuffer.Get(),
 		0,
@@ -351,14 +384,98 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 		&offset
 	);
 
-	if(objBuffer->withIndices) 
+	if (objBuffer->withIndices)
 	{
 		context->IASetIndexBuffer(
 			objBuffer->objectIndexBuffer.Get(),
 			DXGI_FORMAT_R16_UINT,
 			0
 		);
+	}
+}
 
+void CoreRenderer::SetObjectsToRender2(coreObjectBuffer * objBuffer)
+{
+	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
+
+	static float the_time = 0.0f;
+	the_time += 3.14f / 180;
+	if (the_time >= 3.14 * 2)
+		the_time = 0.0f;
+
+	ResetWorld();
+	//RotateWorld(0.0f, 0.0f, 3.14f/2);
+	RotateWorld(the_time, the_time, the_time);
+	//TranslateWorld(0.0f, 0.0f, -abs( 50 * sin(the_time)));
+	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
+
+	context->UpdateSubresource(
+		core_pConstantBuffer.Get(),
+		0,
+		nullptr,
+		&core_constantBufferData,
+		0,
+		0
+	);
+
+	context->VSSetConstantBuffers(
+		0,
+		1,
+		core_pConstantBuffer.GetAddressOf()
+	);
+
+	//////////////////////////////////////////////////
+	UpdateOtherConstantBuffer();
+
+	context->UpdateSubresource(
+		core_pOtherConstantBuffer.Get(),
+		0,
+		nullptr,
+		&core_otherConstantBufferData,
+		0,
+		0
+	);
+
+	context->PSSetConstantBuffers(
+		0,
+		1,
+		core_pOtherConstantBuffer.GetAddressOf()
+	);
+
+	//////////////////////////////////////////////////
+
+	// Set up the IA stage by setting the input topology and layout.
+	UINT stride = sizeof(VertexPosNorColTex);
+	UINT offset = 0;
+
+	context->IASetPrimitiveTopology(
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+	);
+
+	context->IASetVertexBuffers(
+		0,
+		1,
+		objBuffer->objectVertexBuffer.GetAddressOf(),
+		&stride,
+		&offset
+	);
+
+	if (objBuffer->withIndices)
+	{
+		context->IASetIndexBuffer(
+			objBuffer->objectIndexBuffer.Get(),
+			DXGI_FORMAT_R16_UINT,
+			0
+		);
+	}
+}
+
+void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
+{
+	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
+
+	if(objBuffer->withIndices) 
+	{
 		context->DrawIndexed(
 			objBuffer->indicesCount,
 			0,
@@ -372,6 +489,179 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 			0
 		);
 	}
+}
+
+
+
+void CoreRenderer::ScreenShotCustom(UINT width, UINT height)
+{
+	ID3D11Device		*device = coreDevice->GetDevice();
+	ID3D11DeviceContext	*context = coreDevice->GetDeviceContext();
+
+	//================================================================
+	//	RENDER TEXTURE
+	//================================================================
+	D3D11_TEXTURE2D_DESC renderTexDesc;
+	ZeroMemory(&renderTexDesc, sizeof(renderTexDesc));
+	renderTexDesc.Format				= DXGI_FORMAT_R32G32B32A32_FLOAT;
+	renderTexDesc.Width					= width;
+	renderTexDesc.Height				= height;
+	renderTexDesc.BindFlags				= D3D11_BIND_RENDER_TARGET;
+	renderTexDesc.CPUAccessFlags		= 0;
+	renderTexDesc.MiscFlags				= 0;
+	renderTexDesc.ArraySize				= 1;
+	renderTexDesc.MipLevels				= 1;
+	renderTexDesc.SampleDesc.Count		= 1;
+	renderTexDesc.SampleDesc.Quality	= 0;
+	renderTexDesc.Usage					= D3D11_USAGE_DEFAULT;
+
+	ComPtr<ID3D11Texture2D> renderTexture;
+
+	HR(device->CreateTexture2D(
+		&renderTexDesc,
+		0,
+		renderTexture.GetAddressOf()
+	));
+
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
+	ZeroMemory(&rtvDesc, sizeof(rtvDesc));
+	rtvDesc.Format				= renderTexDesc.Format;
+	rtvDesc.ViewDimension		= D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.Texture2D.MipSlice	= 0;
+
+	ComPtr<ID3D11RenderTargetView> _RTV;
+
+	HR(device->CreateRenderTargetView(
+		renderTexture.Get(),
+		&rtvDesc,
+		_RTV.GetAddressOf()
+	));
+	//================================================================
+
+
+
+	//================================================================
+	//	DEPTH TEXTURE
+	//================================================================
+	D3D11_TEXTURE2D_DESC depthTexDesc;
+	ZeroMemory(&renderTexDesc, sizeof(renderTexDesc));
+	depthTexDesc.Format					= DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthTexDesc.Width					= width;
+	depthTexDesc.Height					= height;
+	depthTexDesc.BindFlags				= D3D11_BIND_DEPTH_STENCIL;
+	depthTexDesc.CPUAccessFlags			= 0;
+	depthTexDesc.MiscFlags				= 0;
+	depthTexDesc.ArraySize				= 1;
+	depthTexDesc.MipLevels				= 1;
+	depthTexDesc.SampleDesc.Count		= 1;
+	depthTexDesc.SampleDesc.Quality		= 0;
+	depthTexDesc.Usage					= D3D11_USAGE_DEFAULT;
+
+	ComPtr<ID3D11Texture2D> depthTexture;
+
+	HR(device->CreateTexture2D(
+		&depthTexDesc,
+		0,
+		depthTexture.GetAddressOf()
+	));
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+	ZeroMemory(&dsvDesc, sizeof(dsvDesc));
+	dsvDesc.Flags = 0;
+	dsvDesc.Format = depthTexDesc.Format;
+	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	dsvDesc.Texture2D.MipSlice = 0;
+
+	ComPtr<ID3D11DepthStencilView> _DSV;
+
+	HR(device->CreateDepthStencilView(
+		depthTexture.Get(),
+		&dsvDesc,
+		_DSV.GetAddressOf()
+	));
+	//================================================================
+
+	const float teal[] = { 0.098f, 0.439f, 0.439f, 1.000f };
+	context->ClearRenderTargetView(
+		_RTV.Get(),
+		teal
+	);
+
+	context->ClearDepthStencilView(
+		_DSV.Get(),
+		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+		1.0f,
+		0
+	);
+
+	context->OMSetRenderTargets(
+		1,
+		_RTV.GetAddressOf(),
+		_DSV.Get()
+	);
+
+	D3D11_VIEWPORT _viewport;
+	ZeroMemory(&_viewport, sizeof(_viewport));
+	_viewport.Height	= 200.0f;
+	_viewport.Width		= 200.0f;
+	_viewport.TopLeftX	= 0.0f;
+	_viewport.TopLeftY	= 0.0f;
+	_viewport.MinDepth	= 0.0f;
+	_viewport.MaxDepth	= 1.0f;
+
+	context->RSSetViewports(
+		1,
+		&_viewport
+	);
+
+	for (auto& obj : vObjectBuffer)
+	{
+		RenderObjects(&obj);
+	}
+
+	//================================================================
+
+
+
+	//================================================================
+	//	SAVE TEXTUREs
+	//================================================================
+	SaveDDSTextureToFile(
+		context,
+		renderTexture.Get(),
+		L"Snapshots/RenderTexture.dds"
+	);
+
+	SaveDDSTextureToFile(
+		context,
+		depthTexture.Get(),
+		L"Snapshots/DepthTexture.dds"
+	);
+	//================================================================
+}
+
+void CoreRenderer::ScreenShotBackBuffer()
+{
+	ID3D11DeviceContext	*context = coreDevice->GetDeviceContext();
+
+	ID3D11Texture2D*	bbRTVTex = coreDevice->GetBackBufferRTV_Texture();
+	ID3D11Texture2D*	bbDSVTex = coreDevice->GetBackBufferDSV_Texture();
+
+	//================================================================
+	//	SAVE TEXTUREs
+	//================================================================
+	SaveDDSTextureToFile(
+		context,
+		bbRTVTex,
+		L"Snapshots/RenderTexture.dds"
+	);
+
+	SaveDDSTextureToFile(
+		context,
+		bbDSVTex,
+		L"Snapshots/DepthTexture.dds"
+	);
+	//================================================================
 }
 
 HRESULT CoreRenderer::CreateShaders()

@@ -125,17 +125,19 @@ HRESULT CoreDevice::ConfigureBackBuffer()
 		core_pRTV.GetAddressOf()
 	);
 
-	core_pBackBuffer->GetDesc(&core_sBackBufferDesc);
+	core_pBackBuffer->GetDesc(&core_sBackBufferRTV_TextureDesc);
 
 	// Create a depth-stencil view for use with 3D rendering if needed.
 	CD3D11_TEXTURE2D_DESC depthStencilDesc(
 		DXGI_FORMAT_D24_UNORM_S8_UINT,
-		static_cast<UINT> (core_sBackBufferDesc.Width),
-		static_cast<UINT> (core_sBackBufferDesc.Height),
+		static_cast<UINT> (core_sBackBufferRTV_TextureDesc.Width),
+		static_cast<UINT> (core_sBackBufferRTV_TextureDesc.Height),
 		1, // This depth stencil view has only one texture.
 		1, // Use a single mipmap level.
 		D3D11_BIND_DEPTH_STENCIL
 	);
+
+	core_sBackBufferDSV_TextureDesc = depthStencilDesc;
 
 	core_pDevice->CreateTexture2D(
 		&depthStencilDesc,
@@ -154,8 +156,8 @@ HRESULT CoreDevice::ConfigureBackBuffer()
 	ZeroMemory(&core_sViewport, sizeof(D3D11_VIEWPORT));
 	core_sViewport.TopLeftX = 0.0f;
 	core_sViewport.TopLeftY = 0.0f;
-	core_sViewport.Height = (float)core_sBackBufferDesc.Height;
-	core_sViewport.Width = (float)core_sBackBufferDesc.Width;
+	core_sViewport.Height = static_cast<float>(core_sBackBufferRTV_TextureDesc.Height);
+	core_sViewport.Width  = static_cast<float>(core_sBackBufferRTV_TextureDesc.Width);
 	core_sViewport.MinDepth = 0.0f;
 	core_sViewport.MaxDepth = 1.0f;
 	
@@ -242,7 +244,7 @@ HRESULT CoreDevice::GoWindowed()
 
 float CoreDevice::GetAspectRatio()
 {
-	return static_cast<float>(core_sBackBufferDesc.Width) / static_cast<float>(core_sBackBufferDesc.Height);
+	return static_cast<float>(core_sBackBufferRTV_TextureDesc.Width) / static_cast<float>(core_sBackBufferRTV_TextureDesc.Height);
 }
 
 void CoreDevice::Present()
