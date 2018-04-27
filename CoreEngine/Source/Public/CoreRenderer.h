@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <DirectXMath.h>
+#include "ShadowMap.h"
 
 using namespace std;
 using namespace DirectX;
@@ -37,6 +38,7 @@ public:
 	void ScaleWorld(float Sx, float Sy, float Sz);
 	void ResetWorld();
 	void UpdateOtherConstantBuffer();
+
 	void SetStates();
 	void Render();
 
@@ -57,8 +59,9 @@ private:
 	void    CreateViewAndPerspective();
 
 	void	SetObjectsToRender(coreObjectBuffer *objBuffer);
-	void	SetObjectsToRender2(coreObjectBuffer *objBuffer);
 	void    RenderObjects(coreObjectBuffer *objBuffer);
+
+	void	ComputeShadowMap();
 
 	vector<coreObjectBuffer> vObjectBuffer;
 
@@ -91,7 +94,7 @@ private:
 	ComPtr<ID3D11RasterizerState>	core_pRasterStateFillMode;
 
 	XMVECTOR up		= XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
-	XMVECTOR eye	= XMVectorSet(0.0f, 0.0f, 5.0f, 0.f);
+	XMVECTOR eye	= XMVectorSet(0.0f, 5.0f, 5.0f, 0.f);
 	XMVECTOR at		= XMVectorSet(0.0f, 0.0f, 0.0f, 0.f);
 
 	ComPtr<ID3D11Texture2D>				mTexture;
@@ -101,5 +104,7 @@ private:
 	ComPtr<ID3D11ShaderResourceView>	mSRV2;
 
 	ComPtr<ID3D11SamplerState>			mSamplerState;
+
+	shared_ptr<ShadowMap>				mShadowMap;
 
 };

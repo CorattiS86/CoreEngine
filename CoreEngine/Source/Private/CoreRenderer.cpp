@@ -159,7 +159,10 @@ void CoreRenderer::ScaleWorld(float Sx, float Sy, float Sz)
 
 void CoreRenderer::ResetWorld()
 {
-	XMStoreFloat4x4(&core_constantBufferData.world, XMMatrixIdentity());
+	XMStoreFloat4x4(
+		&core_constantBufferData.world, 
+		XMMatrixIdentity()
+	);
 }
 
 void CoreRenderer::UpdateOtherConstantBuffer()
@@ -279,43 +282,17 @@ void CoreRenderer::Render()
 
 	context->RSSetState(core_pRasterStateFillMode.Get());
 
+	context->RSSetViewports(
+		1,
+		&viewport
+	);
 
-	D3D11_VIEWPORT _viewport[2];
-	_viewport[0].Width = 200.0f;
-	_viewport[0].Height = 200.0f;
-	_viewport[0].TopLeftX = 0.0f;
-	_viewport[0].TopLeftY = 0.0f;
-	_viewport[0].MinDepth = 0.0f;
-	_viewport[0].MaxDepth = 1.0f;
-
-	_viewport[1].Width = 200.0f;
-	_viewport[1].Height = 200.0f;
-	_viewport[1].TopLeftX = 200.0f;
-	_viewport[1].TopLeftY = 0.0f;
-	_viewport[1].MinDepth = 0.0f;
-	_viewport[1].MaxDepth = 1.0f;
-
-	for (int k = 0; k < 2; k++) {
-
-		context->RSSetViewports(
-			1,
-			&_viewport[k]
-		);
-
-		for (auto& obj : vObjectBuffer)
-		{
-			SetObjectsToRender(&obj);
-			RenderObjects(&obj);
-		}
+	for (auto& obj : vObjectBuffer)
+	{
+		SetObjectsToRender(&obj);
+		RenderObjects(&obj);
 	}
 
-	static int l = 0;
-	l++;
-	if (l > 100) {
-		ScreenShotBackBuffer();
-
-		l = 0;
-	}
 }
 
 void CoreRenderer::SetObjectsToRender(coreObjectBuffer * objBuffer)
@@ -329,83 +306,7 @@ void CoreRenderer::SetObjectsToRender(coreObjectBuffer * objBuffer)
 
 	ResetWorld();
 	//RotateWorld(0.0f, 0.0f, 3.14f/2);
-	RotateWorld(-the_time, -the_time, -the_time);
-	//TranslateWorld(0.0f, 0.0f, -abs( 50 * sin(the_time)));
-	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
-
-	context->UpdateSubresource(
-		core_pConstantBuffer.Get(),
-		0,
-		nullptr,
-		&core_constantBufferData,
-		0,
-		0
-	);
-
-	context->VSSetConstantBuffers(
-		0,
-		1,
-		core_pConstantBuffer.GetAddressOf()
-	);
-
-	//////////////////////////////////////////////////
-	UpdateOtherConstantBuffer();
-
-	context->UpdateSubresource(
-		core_pOtherConstantBuffer.Get(),
-		0,
-		nullptr,
-		&core_otherConstantBufferData,
-		0,
-		0
-	);
-
-	context->PSSetConstantBuffers(
-		0,
-		1,
-		core_pOtherConstantBuffer.GetAddressOf()
-	);
-
-	//////////////////////////////////////////////////
-
-	// Set up the IA stage by setting the input topology and layout.
-	UINT stride = sizeof(VertexPosNorColTex);
-	UINT offset = 0;
-
-	context->IASetPrimitiveTopology(
-		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
-	);
-
-	context->IASetVertexBuffers(
-		0,
-		1,
-		objBuffer->objectVertexBuffer.GetAddressOf(),
-		&stride,
-		&offset
-	);
-
-	if (objBuffer->withIndices)
-	{
-		context->IASetIndexBuffer(
-			objBuffer->objectIndexBuffer.Get(),
-			DXGI_FORMAT_R16_UINT,
-			0
-		);
-	}
-}
-
-void CoreRenderer::SetObjectsToRender2(coreObjectBuffer * objBuffer)
-{
-	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
-
-	static float the_time = 0.0f;
-	the_time += 3.14f / 180;
-	if (the_time >= 3.14 * 2)
-		the_time = 0.0f;
-
-	ResetWorld();
-	//RotateWorld(0.0f, 0.0f, 3.14f/2);
-	RotateWorld(the_time, the_time, the_time);
+	//RotateWorld(-the_time, -the_time, -the_time);
 	//TranslateWorld(0.0f, 0.0f, -abs( 50 * sin(the_time)));
 	//TranslateWorld(cos(the_time), sin(the_time), 0.0f);
 
@@ -489,6 +390,25 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 			0
 		);
 	}
+}
+
+void CoreRenderer::ComputeShadowMap()
+{
+	ID3D11Device* device = coreDevice->GetDevice();
+
+	ShadowMap shadowMap(device, 800, 600);
+
+	struct BoundingSphere
+	{
+		BoundingSphere(float centerX, float centerY, float centerZ, float radius ) : Center(centerX, centerY, centerZ), Radius(radius) {}
+		
+		XMFLOAT3 Center;
+		float Radius;
+	};
+	BoundingSphere boundingSphere(0.0f, 0.0f, 0.0f, 15.0f);
+
+
+
 }
 
 

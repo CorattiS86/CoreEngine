@@ -4,25 +4,31 @@
 #include <memory>
 #include "CoreDevice.h"
 
-class Renderable
+class RenderableState
 {
 	
-	Renderable(const Renderable & r);
-	Renderable & operator= (const Renderable & r);
+	RenderableState(const RenderableState & r);
+	RenderableState & operator= (const RenderableState & r);
 
 public:
-	Renderable()
+	RenderableState()
 	{
 
 	}
 
-	~Renderable()
+	~RenderableState()
 	{
 	
 	}
 
-	void setViewport(D3D11_VIEWPORT* viewport) { 
-		mViewport = *viewport; 
+	void setBackgroundColor(float *color) {
+		mBackgroundColor[0] = color[0];
+		mBackgroundColor[1] = color[1];
+		mBackgroundColor[2] = color[2];
+	}
+
+	void setViewport(D3D11_VIEWPORT viewport) { 
+		mViewport = viewport; 
 	}
 
 	void setRenderTargetViews(ID3D11RenderTargetView* RTV) {
@@ -88,13 +94,6 @@ public:
 	void Render(ID3D11DeviceContext	*context, ID3D11RenderTargetView* rtv) 
 	{
 		const float green[] = { 0.0f, 1.0f, 0.0f, 1.0f };
-
-		ComPtr<ID3D11RenderTargetView> ComRTV = rtv;
-
-		context->ClearRenderTargetView(
-			ComRTV.Get(),
-			green
-		);
 
 		//context->ClearRenderTargetView(
 		//	mRTV.Get(),
@@ -176,6 +175,7 @@ public:
 
 private:
 	
+	float								mBackgroundColor[3];
 	D3D11_VIEWPORT						mViewport;
 	ComPtr<ID3D11RenderTargetView>		mRTV;
 	ComPtr<ID3D11DepthStencilView>		mDSV;
@@ -197,96 +197,104 @@ private:
 
 
 
-class RenderableBuilder
+class RenderableStateBuilder
 {
 public:
 
-	RenderableBuilder() { }
+	RenderableStateBuilder() { }
 
-	RenderableBuilder& buildViewport(D3D11_VIEWPORT* viewport) {
+	RenderableStateBuilder& buildBackgroundColor(float *color) {
+		_BackgroundColor[0] = color[0];
+		_BackgroundColor[1] = color[1];
+		_BackgroundColor[2] = color[2];
+		return *this;
+	}
+
+	RenderableStateBuilder& buildViewport(D3D11_VIEWPORT* viewport) {
 		_Viewport = viewport;
 		return *this;
 	}
 
-	RenderableBuilder& buildRenderTargetViews(ID3D11RenderTargetView* RTV) {
+	RenderableStateBuilder& buildRenderTargetViews(ID3D11RenderTargetView* RTV) {
 		_RTV = RTV;
 		return *this;
 	}
 
-	RenderableBuilder& buildDepthStencilView(ID3D11DepthStencilView* DSV) {
+	RenderableStateBuilder& buildDepthStencilView(ID3D11DepthStencilView* DSV) {
 		_DSV = DSV;
 		return *this;
 	}
 
-	RenderableBuilder& buildShaderResourceView(ID3D11ShaderResourceView* SRV) {
+	RenderableStateBuilder& buildShaderResourceView(ID3D11ShaderResourceView* SRV) {
 		_SRV = SRV;
 		return *this;
 	}
 
-	RenderableBuilder& buildVertexBuffer(ID3D11Buffer* vertexBuffer) {
+	RenderableStateBuilder& buildVertexBuffer(ID3D11Buffer* vertexBuffer) {
 		_VertexBuffer = vertexBuffer;
 		return *this;
 	}
 
-	RenderableBuilder& buildVerticesCount(unsigned int verticesCount) {
+	RenderableStateBuilder& buildVerticesCount(unsigned int verticesCount) {
 		_VerticesCount = verticesCount;
 		return *this;
 	}
 
-	RenderableBuilder& buildIndexBuffer(ID3D11Buffer* indexBuffer) {
+	RenderableStateBuilder& buildIndexBuffer(ID3D11Buffer* indexBuffer) {
 		_IndexBuffer = indexBuffer;
 		return *this;
 	}
 
-	RenderableBuilder& buildIndicesCount(unsigned int indicesCount) {
+	RenderableStateBuilder& buildIndicesCount(unsigned int indicesCount) {
 		_IndicesCount = indicesCount;
 		return *this;
 	}
 
-	RenderableBuilder& buildIsWithIndices(bool isWithIndices) {
+	RenderableStateBuilder& buildIsWithIndices(bool isWithIndices) {
 		_IsWithIndices = isWithIndices;
 		return *this;
 	}
 
-	RenderableBuilder& buildInputLayout(ID3D11InputLayout* inputLayout) {
+	RenderableStateBuilder& buildInputLayout(ID3D11InputLayout* inputLayout) {
 		_InputLayout = inputLayout;
 		return *this;
 	}
 
-	RenderableBuilder& buildStride(UINT stride) {
+	RenderableStateBuilder& buildStride(UINT stride) {
 		_Stride = stride;
 		return *this;
 	}
 
-	RenderableBuilder& buildOffset(UINT offset) {
+	RenderableStateBuilder& buildOffset(UINT offset) {
 		_Offset = offset;
 		return *this;
 	}
 
-	RenderableBuilder& buildConstantBuffer(ID3D11Buffer* constantbuffer) {
+	RenderableStateBuilder& buildConstantBuffer(ID3D11Buffer* constantbuffer) {
 		_ConstantBuffer = constantbuffer;
 		return *this;
 	}
 
-	RenderableBuilder& buildSamplerState(ID3D11SamplerState* samplerState) {
+	RenderableStateBuilder& buildSamplerState(ID3D11SamplerState* samplerState) {
 		_SamplerState = samplerState;
 		return *this;
 	}
 
-	RenderableBuilder& buildVertexShader(ID3D11VertexShader* vertexShader) {
+	RenderableStateBuilder& buildVertexShader(ID3D11VertexShader* vertexShader) {
 		_VertexShader = vertexShader;
 		return *this;
 	}
 
-	RenderableBuilder& buildPixelShader(ID3D11PixelShader* pixelShader) {
+	RenderableStateBuilder& buildPixelShader(ID3D11PixelShader* pixelShader) {
 		_PixelShader = pixelShader;
 		return *this;
 	}
 
-	Renderable* buildRenderable() {
+	RenderableState* buildRenderable() {
 
-		Renderable *_Renderable = new Renderable;
+		RenderableState *_Renderable = new RenderableState;
 
+		_Renderable->setBackgroundColor(_BackgroundColor);
 		_Renderable->setViewport(_Viewport);
 		_Renderable->setRenderTargetViews(_RTV.Get());
 		_Renderable->setDepthStencilView(_DSV.Get());
@@ -310,7 +318,8 @@ public:
 
 private:
 
-	D3D11_VIEWPORT*						_Viewport;
+	float								_BackgroundColor[3];
+	D3D11_VIEWPORT						_Viewport;
 	ComPtr<ID3D11RenderTargetView>		_RTV;
 	ComPtr<ID3D11DepthStencilView>		_DSV;
 	ComPtr<ID3D11ShaderResourceView>	_SRV;
@@ -328,4 +337,3 @@ private:
 	ComPtr<ID3D11SamplerState>			_SamplerState;
 
 };
-

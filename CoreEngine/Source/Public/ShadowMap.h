@@ -2,8 +2,11 @@
 
 #include <d3d11.h>
 #include <wrl.h>
+#include <DirectXMath.h>
+#include "CoreCommon.h"
 
 using namespace Microsoft::WRL;
+using namespace DirectX;
 
 class ShadowMap
 {
@@ -16,8 +19,15 @@ public:
 
 	~ShadowMap();
 
-	ID3D11ShaderResourceView * getSRVDepthMap() { return mSRV.Get(); }
+	ID3D11ShaderResourceView*	getSRVDepthMap() { return mSRV.Get(); }
 	void BindResources(ID3D11DeviceContext *context);
+	void SetPointOfView(
+		XMVECTOR up,
+		XMVECTOR eye,
+		XMVECTOR at
+	);
+
+	void Capture(ID3D11DeviceContext	*context);
 
 private:
 	// to avoid copy of this class
@@ -25,11 +35,13 @@ private:
 	ShadowMap& operator=(const ShadowMap& shadowMap);
 
 private:
+	
+	ComPtr<ID3D11Texture2D>				mDepthMapTexture;
 
-	struct SHADOWMAP_CONSTANT_BUFFER
-	{
+	ID3D11Device*						mDevice;
+	ID3D11DeviceContext*				mContext;
 
-	}ShadowMapConstantBuffer;
+	ConstantBufferStruct				mShadowMapConstantBuffer;
 
 	UINT mWidth;
 	UINT mHeight;
@@ -40,11 +52,10 @@ private:
 	D3D11_VIEWPORT						mViewport;
 
 	ComPtr<ID3D11SamplerState>			mSamplerState;
-	ComPtr<ID3D11Buffer>				mConstantBuffer0;
+	ComPtr<ID3D11Buffer>				mConstantBuffer;
 	ComPtr<ID3D11VertexShader>			mVertexShader;
 	ComPtr<ID3D11PixelShader>			mPixelShader;
 	ComPtr<ID3D11InputLayout>			mInputLayout;
-	
 
 	bool bIsInitialized;
 };

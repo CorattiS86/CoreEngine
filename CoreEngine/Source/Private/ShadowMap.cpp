@@ -1,7 +1,7 @@
 #include "ShadowMap.h"
 #include "CoreUtils.h"
 #include <iostream>
-
+#include <ScreenGrab.h>
 
 
 ShadowMap::ShadowMap(
@@ -33,11 +33,11 @@ ShadowMap::ShadowMap(
 //================================================================
 	D3D11_TEXTURE2D_DESC texDesc;
 	ZeroMemory(&texDesc, sizeof(texDesc));
-	texDesc.Format				= DXGI_FORMAT_R24G8_TYPELESS;
+	texDesc.Format				= DXGI_FORMAT_D24_UNORM_S8_UINT;
 	texDesc.Width				= mWidth;
 	texDesc.Height				= mHeight;
-	texDesc.BindFlags			= D3D11_BIND_SHADER_RESOURCE
-								| D3D11_BIND_DEPTH_STENCIL;
+	texDesc.BindFlags			= D3D11_BIND_DEPTH_STENCIL
+;
 	texDesc.ArraySize			= 1;
 	texDesc.CPUAccessFlags		= 0;
 	texDesc.MipLevels			= 1;
@@ -46,12 +46,10 @@ ShadowMap::ShadowMap(
 	texDesc.SampleDesc.Count	= 1;
 	texDesc.SampleDesc.Quality	= 0;
 
-	ComPtr<ID3D11Texture2D> depthMapTexture = 0;
-
 	HR(device->CreateTexture2D(
 		&texDesc,
 		0,
-		depthMapTexture.GetAddressOf()
+		mDepthMapTexture.GetAddressOf()
 	));
 //================================================================
 
@@ -68,7 +66,7 @@ ShadowMap::ShadowMap(
 	dsvDesc.Texture2D.MipSlice	= 0;
 
 	HR(device->CreateDepthStencilView(
-		depthMapTexture.Get(),
+		mDepthMapTexture.Get(),
 		&dsvDesc,
 		mDSV.GetAddressOf()
 	));
@@ -79,131 +77,38 @@ ShadowMap::ShadowMap(
 //================================================================
 //	CREATE SHADER RESOURCE VIEW TO BIND TO TEXTURE 
 //================================================================
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	ZeroMemory(&srvDesc, sizeof(srvDesc));
-	srvDesc.Format						= DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-	srvDesc.ViewDimension				= D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels			= texDesc.MipLevels;
-	srvDesc.Texture2D.MostDetailedMip	= 0;
+	//D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	//ZeroMemory(&srvDesc, sizeof(srvDesc));
+	//srvDesc.Format						= DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	//srvDesc.ViewDimension				= D3D11_SRV_DIMENSION_TEXTURE2D;
+	//srvDesc.Texture2D.MipLevels			= texDesc.MipLevels;
+	//srvDesc.Texture2D.MostDetailedMip	= 0;
 
-	HR(device->CreateShaderResourceView(
-		depthMapTexture.Get(),
-		&srvDesc,
-		mSRV.GetAddressOf()
-	));
+	//HR(device->CreateShaderResourceView(
+	//	mDepthMapTexture.Get(),
+	//	&srvDesc,
+	//	mSRV.GetAddressOf()
+	//));
 	
 //================================================================
 
-
-
 //================================================================
-//	CREATE VERTEX SHADER & ITS INPUT LAYOUT
+//	CREATE CONSTANT BUFFER
 //================================================================
-{
-	FILE *vShader;
-	BYTE *bytes;
-
-	size_t destSize = 32768;
-	size_t bytesRead = 0;
-	bytes = new BYTE[destSize];
-
-	fopen_s(&vShader, "Shaders/Compiled/ShadowMapShader.cso", "rb");
-	bytesRead = fread_s(bytes, destSize, 1, destSize, vShader);
-
-	HR(device->CreateVertexShader(
-		bytes,
-		bytesRead,
-		nullptr,
-		mVertexShader.GetAddressOf()
-	));
-
-	LOG_STR_1("VERTEX SHADER BYTES READ: %d \n", bytesRead);
-
-	
-	D3D11_INPUT_ELEMENT_DESC iaDesc[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-		0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-		0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-
-	HR(device->CreateInputLayout(
-		iaDesc,
-		ARRAYSIZE(iaDesc),
-		bytes,
-		bytesRead,
-		mInputLayout.GetAddressOf()
-	));
-
-	delete bytes;
-	fclose(vShader);
-}
-//================================================================
-
-
-
-//================================================================
-//	CREATE PIXEL SHADER 
-//================================================================
-{
-	FILE *pShader;
-	BYTE *bytes;
-
-	size_t destSize = 32768;
-	size_t bytesRead = 0;
-	bytes = new BYTE[destSize];
-
-	bytesRead = 0;
-	fopen_s(&pShader, "Shaders/Compiled/ShadowMapShader.cso", "rb");
-	bytesRead = fread_s(bytes, destSize, 1, destSize, pShader);
-	HR(device->CreatePixelShader(
-		bytes,
-		bytesRead,
-		nullptr,
-		mPixelShader.GetAddressOf()
-	));
-
-	LOG_STR_1("PIXEL SHADER BYTES READ: %d \n", bytesRead);
-
-	delete bytes;
-
-	fclose(pShader);
-}
-//================================================================	
-
 	CD3D11_BUFFER_DESC cbDesc(
-		sizeof(ShadowMapConstantBuffer),
+		sizeof(ConstantBufferStruct),
 		D3D11_BIND_CONSTANT_BUFFER
 	);
 
 	HR(device->CreateBuffer(
 		&cbDesc,
 		nullptr,
-		mConstantBuffer0.GetAddressOf()
+		mConstantBuffer.GetAddressOf()
 	));
 
-	D3D11_SAMPLER_DESC samplerDesc;
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	samplerDesc.MinLOD = -FLT_MAX;
-	samplerDesc.MaxLOD = FLT_MAX;
-
-	HR(device->CreateSamplerState(
-		&samplerDesc,
-		mSamplerState.GetAddressOf()
-	));
-
+	//================================================================
 
 	bIsInitialized = true;
-
-
 }
 
 ShadowMap::~ShadowMap()
@@ -214,6 +119,21 @@ void ShadowMap::BindResources(ID3D11DeviceContext *context)
 {
 	if (!bIsInitialized)
 		return;
+
+	context->UpdateSubresource(
+		mConstantBuffer.Get(),
+		0,
+		nullptr,
+		&mShadowMapConstantBuffer,
+		0,
+		0
+	);
+
+	context->VSSetConstantBuffers(
+		0,
+		1,
+		mConstantBuffer.GetAddressOf()
+	);
 
 	context->RSSetViewports(
 		1,
@@ -235,5 +155,54 @@ void ShadowMap::BindResources(ID3D11DeviceContext *context)
 		0
 	);
 
+}
+
+void ShadowMap::SetPointOfView(
+	XMVECTOR up, XMVECTOR eye, XMVECTOR at
+)
+{
+	XMStoreFloat4x4(
+		&mShadowMapConstantBuffer.world,
+		XMMatrixIdentity()
+	);
+
+	XMStoreFloat4x4(
+		&mShadowMapConstantBuffer.view,
+		XMMatrixTranspose(
+			XMMatrixLookAtRH(
+				eye,
+				at,
+				up
+			)
+		)
+	);
+
+	float aspectRatio = static_cast<float>(mWidth) / static_cast<float>(mHeight);
+
+	XMStoreFloat4x4(
+		&mShadowMapConstantBuffer.projection,
+		XMMatrixTranspose(
+			XMMatrixPerspectiveFovRH(
+				XMConvertToRadians(70),
+				aspectRatio,
+				0.01f,
+				100.0f
+			)
+		)
+	);
+}
+
+void ShadowMap::Capture(ID3D11DeviceContext	*context)
+{
+	//================================================================
+	//	SAVE TEXTUREs
+	//================================================================
+	
+	SaveDDSTextureToFile(
+		context,
+		mDepthMapTexture.Get(),
+		L"Snapshots/ShadowMapTexture.dds"
+	);
+	//================================================================
 }
 
