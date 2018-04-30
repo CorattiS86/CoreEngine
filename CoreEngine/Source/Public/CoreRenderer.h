@@ -7,6 +7,7 @@
 #include <memory>
 #include <DirectXMath.h>
 #include "ShadowMap.h"
+#include "CoreRenderable.h"
 
 using namespace std;
 using namespace DirectX;
@@ -41,6 +42,8 @@ public:
 
 	void SetStates();
 	void Render();
+
+	void RenderRenderable();
 
 
 	void ScreenShotCustom(UINT width, UINT height);
@@ -106,5 +109,9 @@ private:
 	ComPtr<ID3D11SamplerState>			mSamplerState;
 
 	shared_ptr<ShadowMap>				mShadowMap;
+
+	CoreRenderable						mRenderable;
+	CoreRenderableBuilder				mRenderableBuilder;
+
 
 };

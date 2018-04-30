@@ -295,6 +295,11 @@ void CoreRenderer::Render()
 
 }
 
+void CoreRenderer::RenderRenderable()
+{
+
+}
+
 void CoreRenderer::SetObjectsToRender(coreObjectBuffer * objBuffer)
 {
 	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();

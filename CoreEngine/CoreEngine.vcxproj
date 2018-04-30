@@ -169,7 +169,7 @@
     <ClInclude Include="Source\Public\DDSTextureLoader.h" />
     <ClInclude Include="Source\Public\DirectXTex.h" />
     <ClInclude Include="Source\Public\Object.h" />
-    <ClInclude Include="Source\Public\Renderable.h" />
+    <ClInclude Include="Source\Public\CoreRenderable.h" />
     <ClInclude Include="Source\Public\RenderableObject.h" />
     <ClInclude Include="Source\Public\Resource.h" />
     <ClInclude Include="Source\Public\ScreenGrab.h" />

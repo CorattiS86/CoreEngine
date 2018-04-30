@@ -4,19 +4,19 @@
 #include <memory>
 #include "CoreDevice.h"
 
-class RenderableState
+class CoreRenderable
 {
 	
-	RenderableState(const RenderableState & r);
-	RenderableState & operator= (const RenderableState & r);
+	CoreRenderable(const CoreRenderable & r);
+	CoreRenderable & operator= (const CoreRenderable & r);
 
 public:
-	RenderableState()
+	CoreRenderable()
 	{
 
 	}
 
-	~RenderableState()
+	~CoreRenderable()
 	{
 	
 	}
@@ -31,28 +31,28 @@ public:
 		mViewport = viewport; 
 	}
 
-	void setRenderTargetViews(ID3D11RenderTargetView* RTV) {
-		mRTV = RTV;
+	void setRenderTargetViews(ComPtr<ID3D11RenderTargetView>* RTV) {
+		mRTV.As(RTV);
 	}
 								
-	void setDepthStencilView(ID3D11DepthStencilView* DSV) {
-		mDSV = DSV;
+	void setDepthStencilView( ComPtr<ID3D11DepthStencilView>* DSV) {
+		mDSV.As(DSV);
 	}
 							
-	void setShaderResourceView(ID3D11ShaderResourceView* SRV) {
-		mSRV = SRV;
+	void setShaderResourceView( ComPtr<ID3D11ShaderResourceView>* SRV) {
+		mSRV.As(SRV);
 	}
 
-	void setVertexBuffer(ID3D11Buffer* vertexBuffer) {
-		mVertexBuffer = vertexBuffer;
+	void setVertexBuffer( ComPtr<ID3D11Buffer>* vertexBuffer) {
+		mVertexBuffer.As(vertexBuffer);
 	}
 
 	void setVerticesCount(unsigned int verticesCount) {
 		mVerticesCount = verticesCount;
 	}
 
-	void setIndexBuffer(ID3D11Buffer* indexBuffer) {
-		mIndexBuffer = indexBuffer;
+	void setIndexBuffer( ComPtr<ID3D11Buffer>* indexBuffer) {
+		mIndexBuffer.As(indexBuffer);
 	}
 
 	void setIndicesCount(unsigned int indicesCount) {
@@ -63,8 +63,8 @@ public:
 		bIsWithIndices = isWithIndices;
 	}
 	
-	void setInputLayout(ID3D11InputLayout* inputLayout)	{
-		mInputLayout = inputLayout;
+	void setInputLayout( ComPtr<ID3D11InputLayout>* inputLayout)	{
+		mInputLayout.As(inputLayout);
 	}
 	
 	void setStride(UINT stride) {
@@ -75,20 +75,20 @@ public:
 		mOffset = offset;
 	}
 
-	void setConstantBuffer(ID3D11Buffer* constantbuffer) {
-		mConstantBuffer = constantbuffer;
+	void setConstantBuffer( ComPtr<ID3D11Buffer>* constantbuffer) {
+		mConstantBuffer.As(constantbuffer);
 	}
 
-	void setSamplerState(ID3D11SamplerState* samplerState) {
-		mSamplerState = samplerState;
+	void setSamplerState( ComPtr<ID3D11SamplerState>* samplerState) {
+		mSamplerState.As(samplerState);
 	}
 
-	void setVertexShader(ID3D11VertexShader* vertexShader) {
-		mVertexShader = vertexShader;
+	void setVertexShader( ComPtr<ID3D11VertexShader>* vertexShader) {
+		mVertexShader.As(vertexShader);
 	}
 
-	void setPixelShader(ID3D11PixelShader* pixelShader) {
-		mPixelShader = pixelShader;
+	void setPixelShader( ComPtr<ID3D11PixelShader>* pixelShader) {
+		mPixelShader.As(pixelShader);
 	}
 
 	void Render(ID3D11DeviceContext	*context, ID3D11RenderTargetView* rtv) 
@@ -171,6 +171,8 @@ public:
 		//		0
 		//	);
 		//}
+
+		
  	}
 
 private:
@@ -180,6 +182,7 @@ private:
 	ComPtr<ID3D11RenderTargetView>		mRTV;
 	ComPtr<ID3D11DepthStencilView>		mDSV;
 	ComPtr<ID3D11ShaderResourceView>	mSRV;
+	ComPtr<ID3D11RasterizerState>		mRasterizerState;
 	ComPtr<ID3D11Buffer>				mVertexBuffer;
 	unsigned int						mVerticesCount;
 	ComPtr<ID3D11Buffer>				mIndexBuffer;
@@ -197,120 +200,120 @@ private:
 
 
 
-class RenderableStateBuilder
+class CoreRenderableBuilder
 {
 public:
 
-	RenderableStateBuilder() { }
+	CoreRenderableBuilder() { }
 
-	RenderableStateBuilder& buildBackgroundColor(float *color) {
+	CoreRenderableBuilder& buildBackgroundColor(float *color) {
 		_BackgroundColor[0] = color[0];
 		_BackgroundColor[1] = color[1];
 		_BackgroundColor[2] = color[2];
 		return *this;
 	}
 
-	RenderableStateBuilder& buildViewport(D3D11_VIEWPORT* viewport) {
+	CoreRenderableBuilder& buildViewport(D3D11_VIEWPORT viewport) {
 		_Viewport = viewport;
 		return *this;
 	}
 
-	RenderableStateBuilder& buildRenderTargetViews(ID3D11RenderTargetView* RTV) {
-		_RTV = RTV;
+	CoreRenderableBuilder& buildRenderTargetViews(ComPtr<ID3D11RenderTargetView>* RTV) {
+		_RTV.As(RTV);
 		return *this;
 	}
 
-	RenderableStateBuilder& buildDepthStencilView(ID3D11DepthStencilView* DSV) {
-		_DSV = DSV;
+	CoreRenderableBuilder& buildDepthStencilView(ComPtr<ID3D11DepthStencilView>* DSV) {
+		_DSV.As(DSV);
 		return *this;
 	}
 
-	RenderableStateBuilder& buildShaderResourceView(ID3D11ShaderResourceView* SRV) {
-		_SRV = SRV;
+	CoreRenderableBuilder& buildShaderResourceView(ComPtr<ID3D11ShaderResourceView>* SRV) {
+		_SRV.As(SRV);
 		return *this;
 	}
 
-	RenderableStateBuilder& buildVertexBuffer(ID3D11Buffer* vertexBuffer) {
-		_VertexBuffer = vertexBuffer;
+	CoreRenderableBuilder& buildVertexBuffer(ComPtr<ID3D11Buffer>* vertexBuffer) {
+		_VertexBuffer.As(vertexBuffer);
 		return *this;
 	}
 
-	RenderableStateBuilder& buildVerticesCount(unsigned int verticesCount) {
+	CoreRenderableBuilder& buildVerticesCount(unsigned int verticesCount) {
 		_VerticesCount = verticesCount;
 		return *this;
 	}
 
-	RenderableStateBuilder& buildIndexBuffer(ID3D11Buffer* indexBuffer) {
-		_IndexBuffer = indexBuffer;
+	CoreRenderableBuilder& buildIndexBuffer(ComPtr<ID3D11Buffer>* indexBuffer) {
+		_IndexBuffer.As(indexBuffer);
 		return *this;
 	}
 
-	RenderableStateBuilder& buildIndicesCount(unsigned int indicesCount) {
+	CoreRenderableBuilder& buildIndicesCount(unsigned int indicesCount) {
 		_IndicesCount = indicesCount;
 		return *this;
 	}
 
-	RenderableStateBuilder& buildIsWithIndices(bool isWithIndices) {
+	CoreRenderableBuilder& buildIsWithIndices(bool isWithIndices) {
 		_IsWithIndices = isWithIndices;
 		return *this;
 	}
 
-	RenderableStateBuilder& buildInputLayout(ID3D11InputLayout* inputLayout) {
-		_InputLayout = inputLayout;
+	CoreRenderableBuilder& buildInputLayout(ComPtr<ID3D11InputLayout>* inputLayout) {
+		_InputLayout.As(inputLayout);
 		return *this;
 	}
 
-	RenderableStateBuilder& buildStride(UINT stride) {
+	CoreRenderableBuilder& buildStride(UINT stride) {
 		_Stride = stride;
 		return *this;
 	}
 
-	RenderableStateBuilder& buildOffset(UINT offset) {
+	CoreRenderableBuilder& buildOffset(UINT offset) {
 		_Offset = offset;
 		return *this;
 	}
 
-	RenderableStateBuilder& buildConstantBuffer(ID3D11Buffer* constantbuffer) {
-		_ConstantBuffer = constantbuffer;
+	CoreRenderableBuilder& buildConstantBuffer(ComPtr<ID3D11Buffer>* constantbuffer) {
+		_ConstantBuffer.As(constantbuffer);
 		return *this;
 	}
 
-	RenderableStateBuilder& buildSamplerState(ID3D11SamplerState* samplerState) {
-		_SamplerState = samplerState;
+	CoreRenderableBuilder& buildSamplerState(ComPtr<ID3D11SamplerState>* samplerState) {
+		_SamplerState.As(samplerState);
 		return *this;
 	}
 
-	RenderableStateBuilder& buildVertexShader(ID3D11VertexShader* vertexShader) {
-		_VertexShader = vertexShader;
+	CoreRenderableBuilder& buildVertexShader(ComPtr<ID3D11VertexShader>* vertexShader) {
+		_VertexShader.As(vertexShader);
 		return *this;
 	}
 
-	RenderableStateBuilder& buildPixelShader(ID3D11PixelShader* pixelShader) {
-		_PixelShader = pixelShader;
+	CoreRenderableBuilder& buildPixelShader(ComPtr<ID3D11PixelShader>* pixelShader) {
+		_PixelShader.As(pixelShader);
 		return *this;
 	}
 
-	RenderableState* buildRenderable() {
+	CoreRenderable* buildRenderable() {
 
-		RenderableState *_Renderable = new RenderableState;
+		CoreRenderable *_Renderable = new CoreRenderable;
 
 		_Renderable->setBackgroundColor(_BackgroundColor);
 		_Renderable->setViewport(_Viewport);
-		_Renderable->setRenderTargetViews(_RTV.Get());
-		_Renderable->setDepthStencilView(_DSV.Get());
-		_Renderable->setShaderResourceView(_SRV.Get());
-		_Renderable->setVertexBuffer(_VertexBuffer.Get());
+		_Renderable->setRenderTargetViews(&_RTV);
+		_Renderable->setDepthStencilView(&_DSV);
+		_Renderable->setShaderResourceView(&_SRV);
+		_Renderable->setVertexBuffer(&_VertexBuffer);
 		_Renderable->setVerticesCount(_VerticesCount);
-		_Renderable->setIndexBuffer(_IndexBuffer.Get());
+		_Renderable->setIndexBuffer(&_IndexBuffer);
 		_Renderable->setIndicesCount(_IndicesCount);
 		_Renderable->setIsWithIndices(_IsWithIndices);
-		_Renderable->setInputLayout(_InputLayout.Get());
+		_Renderable->setInputLayout(&_InputLayout);
 		_Renderable->setStride(_Stride);
 		_Renderable->setOffset(_Offset);
-		_Renderable->setConstantBuffer(_ConstantBuffer.Get());
-		_Renderable->setSamplerState(_SamplerState.Get());
-		_Renderable->setVertexShader(_VertexShader.Get());
-		_Renderable->setPixelShader(_PixelShader.Get());
+		_Renderable->setConstantBuffer(&_ConstantBuffer);
+		_Renderable->setSamplerState(&_SamplerState);
+		_Renderable->setVertexShader(&_VertexShader);
+		_Renderable->setPixelShader(&_PixelShader);
 
 		return _Renderable;
 	}
