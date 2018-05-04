@@ -1,7 +1,6 @@
 #ifndef CORE_UTILS
 #define CORE_UTILS
 
-#undef CORE_DEBUG
 
 #if (defined CORE_DEBUG) 
 	#define COMMA ,

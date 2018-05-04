@@ -21,8 +21,10 @@
 
 #include "CoreDevice.h"
 #include "CoreRenderer.h"
+#include "CoreDrawer.h"
 #include "CoreWindow.h"
 #include "CoreUtils.h"
+#include "MonkeyRenderable.h"
 
 using namespace std;
 
@@ -66,15 +68,16 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		
 		// Instantiate the renderer.
 		shared_ptr<CoreRenderer> coreRenderer = shared_ptr<CoreRenderer>(new CoreRenderer(coreDevice));
+		shared_ptr<CoreDrawer> coreDrawer   = shared_ptr<CoreDrawer>(new CoreDrawer(coreDevice));
 
 		LOG("INFO: CoreRenderer instantiated !!! \n")
 		
-		coreRenderer->CreateDeviceDependentResources();
-		coreRenderer->CreateGraphicalResources();
+		//coreRenderer->CreateDeviceDependentResources();
+		//coreRenderer->CreateGraphicalResources();
 
 		// We have a window, so initialize window size-dependent resources.
 		hr = coreDevice->CreateWindowResources(coreWindow->GetWindowHandle());
-		coreRenderer->CreateWindowSizeDependentResources();
+		//coreRenderer->CreateWindowSizeDependentResources();
 
 		// Go full-screen.
 		//hr = coreDevice->GoFullScreen();
@@ -84,8 +87,29 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//coreRenderer->CreateWindowSizeDependentResources();
 
 		// Run the program.
-		coreRenderer->SetStates();
-		hr = coreWindow->Run(coreDevice, coreRenderer);
+		//coreRenderer->SetStates();
+
+
+
+		MonkeyBuilder builder(coreDevice);
+		builder.Init();
+
+		CoreRenderable * Monkey = builder.buildRenderable();
+		Monkey->ResetCoordinates();
+		
+		XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
+		XMVECTOR eye = XMVectorSet(0.0f, 3.0f, 3.0f, 0.f);
+		XMVECTOR at = XMVectorSet(0.0f, 0.0f, 0.0f, 0.f);
+
+		Monkey->SetEyePosition(up, eye, at);
+
+		Monkey->SetProjection(4.0f / 3.0f);
+
+		coreDrawer->InsertRenderable(Monkey);
+		coreDrawer->Init();
+
+
+		hr = coreWindow->Run(coreDevice, coreRenderer, coreDrawer);
 
 	}
 

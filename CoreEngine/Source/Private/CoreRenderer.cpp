@@ -7,15 +7,15 @@
 #include <fstream>
 #include <sstream>
 #include "ShadowMap.h"
-#include <ScreenGrab.h>
+#include "ScreenGrab.h"
 
 using namespace std;
 using namespace DirectX;
 
 CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	: core_frameCount(0)
-	, coreDevice(coreDevice)
-{	
+	, mCoreDevice(coreDevice)
+{
 
 }
 
@@ -25,7 +25,6 @@ CoreRenderer::~CoreRenderer()
 
 void CoreRenderer::CreateDeviceDependentResources()
 {
-	// Compile shaders using the Effects library.
 	auto CreateShadersTask = Concurrency::create_task(
 		[this]()
 	{
@@ -57,8 +56,8 @@ void CoreRenderer::CreateGraphicalResources()
 	auto LoadTextureTask = Concurrency::create_task(
 		[this]()
 	{
-		ID3D11Device*        device	 = coreDevice->GetDevice();
-		ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
+		ID3D11Device*        device	 = mCoreDevice->GetDevice();
+		ID3D11DeviceContext* context = mCoreDevice->GetDeviceContext();
 
 		CreateDDSTextureFromFile(
 			device,
@@ -178,8 +177,8 @@ void CoreRenderer::UpdateOtherConstantBuffer()
 
 void CoreRenderer::SetStates()
 {
-	ID3D11Device* device = coreDevice->GetDevice();
-	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
+	ID3D11Device* device = mCoreDevice->GetDevice();
+	ID3D11DeviceContext* context = mCoreDevice->GetDeviceContext();
 
 	D3D11_RASTERIZER_DESC rsDesc;
 
@@ -203,12 +202,12 @@ void CoreRenderer::SetStates()
 
 void CoreRenderer::Render()
 {
-	ID3D11Device* device = coreDevice->GetDevice();
-	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
+	ID3D11Device* device = mCoreDevice->GetDevice();
+	ID3D11DeviceContext* context = mCoreDevice->GetDeviceContext();
 
-	ID3D11RenderTargetView* renderTarget = coreDevice->GetRenderTarget();
-	ID3D11DepthStencilView* depthStencil = coreDevice->GetDepthStencil();
-	D3D11_VIEWPORT			viewport	 = coreDevice->GetViewport();
+	ID3D11RenderTargetView* renderTarget = mCoreDevice->GetRenderTargetView();
+	ID3D11DepthStencilView* depthStencil = mCoreDevice->GetDepthStencilView();
+	D3D11_VIEWPORT			viewport	 = mCoreDevice->GetViewport();
 
 	// Clear the render target and the z-buffer.
 	const float teal[] = { 0.098f, 0.439f, 0.439f, 1.0f };
@@ -295,14 +294,11 @@ void CoreRenderer::Render()
 
 }
 
-void CoreRenderer::RenderRenderable()
-{
 
-}
 
 void CoreRenderer::SetObjectsToRender(coreObjectBuffer * objBuffer)
 {
-	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
+	ID3D11DeviceContext* context = mCoreDevice->GetDeviceContext();
 
 	static float the_time = 0.0f;
 	the_time += 3.14f / 180;
@@ -378,7 +374,7 @@ void CoreRenderer::SetObjectsToRender(coreObjectBuffer * objBuffer)
 
 void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 {
-	ID3D11DeviceContext* context = coreDevice->GetDeviceContext();
+	ID3D11DeviceContext* context = mCoreDevice->GetDeviceContext();
 
 	if(objBuffer->withIndices) 
 	{
@@ -399,7 +395,7 @@ void CoreRenderer::RenderObjects(coreObjectBuffer *objBuffer)
 
 void CoreRenderer::ComputeShadowMap()
 {
-	ID3D11Device* device = coreDevice->GetDevice();
+	ID3D11Device* device = mCoreDevice->GetDevice();
 
 	ShadowMap shadowMap(device, 800, 600);
 
@@ -420,8 +416,8 @@ void CoreRenderer::ComputeShadowMap()
 
 void CoreRenderer::ScreenShotCustom(UINT width, UINT height)
 {
-	ID3D11Device		*device = coreDevice->GetDevice();
-	ID3D11DeviceContext	*context = coreDevice->GetDeviceContext();
+	ID3D11Device		*device = mCoreDevice->GetDevice();
+	ID3D11DeviceContext	*context = mCoreDevice->GetDeviceContext();
 
 	//================================================================
 	//	RENDER TEXTURE
@@ -567,10 +563,10 @@ void CoreRenderer::ScreenShotCustom(UINT width, UINT height)
 
 void CoreRenderer::ScreenShotBackBuffer()
 {
-	ID3D11DeviceContext	*context = coreDevice->GetDeviceContext();
+	ID3D11DeviceContext	*context = mCoreDevice->GetDeviceContext();
 
-	ID3D11Texture2D*	bbRTVTex = coreDevice->GetBackBufferRTV_Texture();
-	ID3D11Texture2D*	bbDSVTex = coreDevice->GetBackBufferDSV_Texture();
+	ID3D11Texture2D*	bbRTVTex = mCoreDevice->GetBackBufferRTV_Texture();
+	ID3D11Texture2D*	bbDSVTex = mCoreDevice->GetBackBufferDSV_Texture();
 
 	//================================================================
 	//	SAVE TEXTUREs
@@ -594,7 +590,7 @@ HRESULT CoreRenderer::CreateShaders()
 	HRESULT hr = S_OK;
 
 	// Use the Direct3D device to load resources into graphics memory.
-	ID3D11Device* device = coreDevice->GetDevice();
+	ID3D11Device* device = mCoreDevice->GetDevice();
 
 	// You'll need to use a file loader to load the shader bytecode. In this
 	// example, we just use the standard library.
@@ -658,7 +654,7 @@ HRESULT CoreRenderer::CreateShaders()
 	delete bytes;
 
 	CD3D11_BUFFER_DESC cbDesc(
-		sizeof(ConstantBufferStruct),
+		sizeof(WorldViewProjection),
 		D3D11_BIND_CONSTANT_BUFFER
 	);
 
@@ -706,7 +702,7 @@ HRESULT CoreRenderer::CreateTexObjectBuffer(Object * obj)
 {
 	HRESULT hr = S_OK;
 
-	ID3D11Device* device = coreDevice->GetDevice();
+	ID3D11Device* device = mCoreDevice->GetDevice();
 
 	coreObjectBuffer TexObjBuffer;
 
@@ -741,7 +737,7 @@ HRESULT CoreRenderer::CreateTexObjectBufferWithIndices(Object * obj)
 {
 	HRESULT hr = S_OK;
 
-	ID3D11Device* device = coreDevice->GetDevice();
+	ID3D11Device* device = mCoreDevice->GetDevice();
 
 	coreObjectBuffer TexObjBuffer;
 
@@ -807,7 +803,7 @@ void CoreRenderer::CreateViewAndPerspective()
 		)
 	);
 
-	float aspectRatio = coreDevice->GetAspectRatio();
+	float aspectRatio = mCoreDevice->GetAspectRatio();
 
 	XMStoreFloat4x4( 
 		&core_constantBufferData.projection,

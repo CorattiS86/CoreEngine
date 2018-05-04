@@ -39,14 +39,14 @@ typedef struct VERTEX_POSITION_NORMAL_TANGENT
 //-----------------------------------------------------------------------------
 // Variables for rendering the cube
 //-----------------------------------------------------------------------------
-typedef struct _constantBufferStruct {
+typedef struct WORLD_VIEW_PROJECTION {
 	XMFLOAT4X4 world;
 	XMFLOAT4X4 view;
 	XMFLOAT4X4 projection;
-} ConstantBufferStruct;
+} WorldViewProjection;
 
 // Assert that the constant buffer remains 16-byte aligned.
-static_assert((sizeof(ConstantBufferStruct) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
+static_assert((sizeof(WorldViewProjection) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
 
 //-----------------------------------------------------------------------------
 // Variables for rendering the cube

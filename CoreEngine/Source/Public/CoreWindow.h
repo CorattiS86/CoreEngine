@@ -5,6 +5,7 @@
 
 #include "CoreDevice.h"
 #include "CoreRenderer.h"
+#include "CoreDrawer.h"
 #include "CoreUtils.h"
 
 #define MAX_LOADSTRING 20
@@ -25,7 +26,8 @@ public:
 
 	HRESULT Run(
 		shared_ptr<CoreDevice> coreDevice,
-		shared_ptr<CoreRenderer> coreRenderer
+		shared_ptr<CoreRenderer> coreRenderer,
+		shared_ptr<CoreDrawer> coreDrawer
 	);
 
 	static LRESULT CALLBACK CoreWindowProcedure(

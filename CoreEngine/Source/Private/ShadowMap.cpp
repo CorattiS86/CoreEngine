@@ -96,7 +96,7 @@ ShadowMap::ShadowMap(
 //	CREATE CONSTANT BUFFER
 //================================================================
 	CD3D11_BUFFER_DESC cbDesc(
-		sizeof(ConstantBufferStruct),
+		sizeof(WorldViewProjection),
 		D3D11_BIND_CONSTANT_BUFFER
 	);
 

@@ -43,7 +43,7 @@ public:
 	void SetStates();
 	void Render();
 
-	void RenderRenderable();
+	void Configure();
 
 
 	void ScreenShotCustom(UINT width, UINT height);
@@ -71,10 +71,10 @@ private:
 	//-----------------------------------------------------------------------------
 	// Pointer to device resource manager
 	//-----------------------------------------------------------------------------
-	shared_ptr<CoreDevice> coreDevice;
+	shared_ptr<CoreDevice> mCoreDevice;
 
 	
-	ConstantBufferStruct		core_constantBufferData;
+	WorldViewProjection		core_constantBufferData;
 	OtherConstantBufferStruct	core_otherConstantBufferData;
 
 	unsigned int  core_indexCount;
@@ -109,9 +109,5 @@ private:
 	ComPtr<ID3D11SamplerState>			mSamplerState;
 
 	shared_ptr<ShadowMap>				mShadowMap;
-
-	CoreRenderable						mRenderable;
-	CoreRenderableBuilder				mRenderableBuilder;
-
 
 };

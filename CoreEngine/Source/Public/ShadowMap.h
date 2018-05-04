@@ -41,7 +41,7 @@ private:
 	ID3D11Device*						mDevice;
 	ID3D11DeviceContext*				mContext;
 
-	ConstantBufferStruct				mShadowMapConstantBuffer;
+	WorldViewProjection				mShadowMapConstantBuffer;
 
 	UINT mWidth;
 	UINT mHeight;
