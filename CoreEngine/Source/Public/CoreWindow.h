@@ -4,7 +4,7 @@
 #include <string>
 
 #include "CoreDevice.h"
-#include "CoreDrawer.h"
+#include "CoreRenderer.h"
 #include "CoreUtils.h"
 
 #define MAX_LOADSTRING 20

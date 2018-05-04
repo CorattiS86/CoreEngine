@@ -20,7 +20,7 @@
 #include <memory>
 
 #include "CoreDevice.h"
-#include "CoreDrawer.h"
+#include "CoreRenderer.h"
 #include "CoreWindow.h"
 #include "CoreUtils.h"
 #include "MonkeyRenderable.h"

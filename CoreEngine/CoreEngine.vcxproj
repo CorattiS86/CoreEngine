@@ -163,7 +163,7 @@
     <ClInclude Include="Source\Public\CoreCamera.h" />
     <ClInclude Include="Source\Public\CoreCommon.h" />
     <ClInclude Include="Source\Public\CoreDevice.h" />
-    <ClInclude Include="Source\Public\CoreDrawer.h" />
+    <ClInclude Include="Source\Public\CoreRenderer.h" />
     <ClInclude Include="Source\Public\CoreTimer.h" />
     <ClInclude Include="Source\Public\CoreUtils.h" />
     <ClInclude Include="Source\Public\CoreWindow.h" />
@@ -180,8 +180,8 @@
   <ItemGroup>
     <ClCompile Include="Source\Private\CoreCamera.cpp" />
     <ClCompile Include="Source\Private\CoreDevice.cpp" />
-    <ClCompile Include="Source\Private\CoreDrawer.cpp" />
     <ClCompile Include="Source\Private\CoreRenderable.cpp" />
+    <ClCompile Include="Source\Private\CoreRenderer.cpp" />
     <ClCompile Include="Source\Private\CoreTimer.cpp" />
     <ClCompile Include="Source\Private\CoreWindow.cpp" />
     <ClCompile Include="Source\Private\DDSTextureLoader.cpp" />
