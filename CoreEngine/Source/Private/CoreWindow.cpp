@@ -114,8 +114,8 @@ HRESULT CoreWindow::Run(
 
 			coreDrawer->Draw();
 
-			static int k = 0;
-			/*k++;
+			/*static int k = 0;
+			k++;
 			if (k > 100) {
 				coreDrawer->ScreenShot();
 			}*/

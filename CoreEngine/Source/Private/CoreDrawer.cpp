@@ -11,10 +11,15 @@ CoreDrawer::~CoreDrawer()
 {
 }
 
-void CoreDrawer::InsertRenderable(CoreRenderable * renderable)
+void CoreDrawer::SetRenderable(CoreRenderable * renderable)
 {
 	// assign CoreRenderable pointer to unique_ptr<CoreRenderable>
 	mRenderable.reset(renderable);
+}
+
+void CoreDrawer::SetCamera(shared_ptr<CoreCamera> camera)
+{
+	mCamera = camera;
 }
 
 void CoreDrawer::Init()
@@ -123,6 +128,9 @@ void CoreDrawer::Draw()
 	);
 
 
+	//================================================================
+	// UPDATE WORLD-VIEW-PROJECTION MATRICES
+	//================================================================
 	static float the_time = 0.0f;
 	the_time += 3.14f / 180;
 	if (the_time >= 3.14 * 2)
@@ -131,7 +139,7 @@ void CoreDrawer::Draw()
 	mRenderable->ResetCoordinates();
 	mRenderable->RotateCoordinates(-the_time, -the_time, -the_time);
 
-
+	
 	context->UpdateSubresource(
 		mRenderable->getConstantBuffer(),
 		0,

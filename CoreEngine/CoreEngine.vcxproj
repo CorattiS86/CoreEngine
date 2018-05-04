@@ -160,6 +160,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Public\CoreCamera.h" />
     <ClInclude Include="Source\Public\CoreCommon.h" />
     <ClInclude Include="Source\Public\CoreDevice.h" />
     <ClInclude Include="Source\Public\CoreDrawer.h" />
@@ -179,6 +180,7 @@
     <ClInclude Include="Source\Public\targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Private\CoreCamera.cpp" />
     <ClCompile Include="Source\Private\CoreDevice.cpp" />
     <ClCompile Include="Source\Private\CoreDrawer.cpp" />
     <ClCompile Include="Source\Private\CoreRenderable.cpp" />

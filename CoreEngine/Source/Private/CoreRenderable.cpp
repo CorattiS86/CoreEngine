@@ -82,7 +82,7 @@ void CoreRenderable::SetEyePosition(XMVECTOR up, XMVECTOR eye, XMVECTOR at)
 	);
 }
 
-void CoreRenderable::SetProjection(float aspectRatio)
+void CoreRenderable::SetPerspectiveProjection(float aspectRatio)
 {
 	XMStoreFloat4x4(
 		&mWorldViewProjection.projection,
@@ -96,3 +96,21 @@ void CoreRenderable::SetProjection(float aspectRatio)
 		)
 	);
 }
+
+void CoreRenderable::SetOrthographicProjection()
+{
+	XMStoreFloat4x4(
+		&mWorldViewProjection.projection,
+		XMMatrixTranspose(
+			XMMatrixOrthographicRH(
+				5.0f,
+				5.0f,
+				0.01f,
+				100.0f
+			)
+		)
+	);
+
+}
+
+

@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include "CoreDevice.h"
 #include "CoreRenderable.h"
+#include "CoreCamera.h"
 
 using namespace std;
 using namespace DirectX;
@@ -13,7 +14,8 @@ public:
 	CoreDrawer(shared_ptr<CoreDevice> coreDevice);
 	~CoreDrawer();
 
-	void InsertRenderable(CoreRenderable *renderable);
+	void SetRenderable(CoreRenderable *renderable);
+	void SetCamera(shared_ptr<CoreCamera> camera);
 	void Init();
 	void Draw();
 	void ScreenShot();
@@ -21,5 +23,6 @@ public:
 private:
 	shared_ptr<CoreDevice>		mCoreDevice;
 
+	shared_ptr<CoreCamera>		mCamera;
 	unique_ptr<CoreRenderable>  mRenderable;
 };

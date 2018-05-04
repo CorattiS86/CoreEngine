@@ -32,7 +32,8 @@ public:
 	void RotateCoordinates(float roll, float pitch, float yaw);
 	void ScaleCoordinates(float Sx, float Sy, float Sz);
 	void SetEyePosition(XMVECTOR up, XMVECTOR eye, XMVECTOR at);
-	void SetProjection(float aspectRatio);
+	void SetPerspectiveProjection(float aspectRatio);
+	void SetOrthographicProjection();
 
 	//================================================================
 	// GETTERs

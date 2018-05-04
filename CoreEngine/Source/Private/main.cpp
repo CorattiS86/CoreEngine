@@ -89,6 +89,10 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		// Run the program.
 		//coreRenderer->SetStates();
 
+		shared_ptr<CoreCamera> coreCamera = shared_ptr<CoreCamera>(new CoreCamera());
+		coreCamera->setUp (0.0f, 1.0f, 0.0f);
+		coreCamera->setEye(0.0f, 0.0f, 5.0f);
+		coreCamera->setAt (0.0f, 0.0f, 0.0f);
 
 
 		MonkeyBuilder builder(coreDevice);
@@ -103,9 +107,12 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		Monkey->SetEyePosition(up, eye, at);
 
-		Monkey->SetProjection(4.0f / 3.0f);
+		Monkey->SetPerspectiveProjection(coreDevice->GetAspectRatio());
+		//Monkey->SetOrthographicProjection();
 
-		coreDrawer->InsertRenderable(Monkey);
+		coreDrawer->SetRenderable(Monkey);
+		coreDrawer->SetCamera(coreCamera);
+
 		coreDrawer->Init();
 
 
