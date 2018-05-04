@@ -4,7 +4,6 @@
 #include <string>
 
 #include "CoreDevice.h"
-#include "CoreRenderer.h"
 #include "CoreDrawer.h"
 #include "CoreUtils.h"
 
@@ -26,8 +25,7 @@ public:
 
 	HRESULT Run(
 		shared_ptr<CoreDevice> coreDevice,
-		shared_ptr<CoreRenderer> coreRenderer,
-		shared_ptr<CoreDrawer> coreDrawer
+		shared_ptr<CoreRenderer> coreRenderer
 	);
 
 	static LRESULT CALLBACK CoreWindowProcedure(

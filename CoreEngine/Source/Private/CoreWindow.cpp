@@ -76,9 +76,7 @@ HRESULT CoreWindow::CreateDesktopWindow()
 
 HRESULT CoreWindow::Run(
 	std::shared_ptr<CoreDevice> coreDevice, 
-	std::shared_ptr<CoreRenderer> coreRenderer,
-	std::shared_ptr<CoreDrawer> coreDrawer
-
+	std::shared_ptr<CoreRenderer> coreRenderer
 )
 {
 	HRESULT hr = S_OK;
@@ -106,20 +104,9 @@ HRESULT CoreWindow::Run(
 		}
 		else
 		{
-			// Update the scene.
-			//coreRenderer->Update();
+	
+			coreRenderer->Render();
 
-			// Render frames during idle time (when no messages are waiting).
-			//coreRenderer->Render();
-
-			coreDrawer->Draw();
-
-			/*static int k = 0;
-			k++;
-			if (k > 100) {
-				coreDrawer->ScreenShot();
-			}*/
-			// Present the frame to the screen.
 			coreDevice->Present();
 
 			CoreTimer::getInstance().Tick();

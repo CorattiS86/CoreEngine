@@ -20,7 +20,6 @@
 #include <memory>
 
 #include "CoreDevice.h"
-#include "CoreRenderer.h"
 #include "CoreDrawer.h"
 #include "CoreWindow.h"
 #include "CoreUtils.h"
@@ -66,9 +65,7 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		hr = coreDevice->CreateDeviceResources();
 		
-		// Instantiate the renderer.
-		shared_ptr<CoreRenderer> coreRenderer = shared_ptr<CoreRenderer>(new CoreRenderer(coreDevice));
-		shared_ptr<CoreDrawer> coreDrawer   = shared_ptr<CoreDrawer>(new CoreDrawer(coreDevice));
+		shared_ptr<CoreRenderer> coreRenderer   = shared_ptr<CoreRenderer>(new CoreRenderer(coreDevice));
 
 		LOG("INFO: CoreRenderer instantiated !!! \n")
 		
@@ -110,13 +107,13 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		Monkey->SetPerspectiveProjection(coreDevice->GetAspectRatio());
 		//Monkey->SetOrthographicProjection();
 
-		coreDrawer->SetRenderable(Monkey);
-		coreDrawer->SetCamera(coreCamera);
+		coreRenderer->SetRenderable(Monkey);
+		coreRenderer->SetCamera(coreCamera);
 
-		coreDrawer->Init();
+		coreRenderer->Init();
 
 
-		hr = coreWindow->Run(coreDevice, coreRenderer, coreDrawer);
+		hr = coreWindow->Run(coreDevice, coreRenderer);
 
 	}
 

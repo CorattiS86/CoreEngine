@@ -30,21 +30,7 @@ PixelShaderInput main(VertexShaderInput input)
 {
 	PixelShaderInput output;
 	 
-	//matrix <float, 4, 4> MyView = {
-	// 0.0, 0.0, -1.0, 0.0, // column 1
-	// 0.0, 1.0,  0.0, 0.0, // column 2
-	// 1.0, 0.0,  0.0, 0.0, // column 3
-	// 5.0, 0.0,  0.0, 1.0  // column 4
-	//};
-
-	//matrix <float, 4, 4> MyViewInverse = { 
-	//	0.0, 0.0,  1.0, 0.0, // column 1
-	//	0.0, 1.0,  0.0, 0.0, // column 2
-	// -1.0, 0.0,  0.0, 0.0, // column 3
-	//	0.0, 0.0, -5.0, 1.0  // column 4
-	//};
-
-	// Transform the vertex position into projected space.
+    // Transform the vertex position into projected space.
 	{
 		float4 pos = float4(input.pos, 1.0f);
 

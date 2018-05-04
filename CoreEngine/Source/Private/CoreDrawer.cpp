@@ -2,27 +2,27 @@
 #include "CoreUtils.h"
 #include "ScreenGrab.h"
 
-CoreDrawer::CoreDrawer(shared_ptr<CoreDevice> coreDevice)
+CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	: mCoreDevice(coreDevice)
 {
 }
 
-CoreDrawer::~CoreDrawer()
+CoreRenderer::~CoreRenderer()
 {
 }
 
-void CoreDrawer::SetRenderable(CoreRenderable * renderable)
+void CoreRenderer::SetRenderable(CoreRenderable * renderable)
 {
 	// assign CoreRenderable pointer to unique_ptr<CoreRenderable>
 	mRenderable.reset(renderable);
 }
 
-void CoreDrawer::SetCamera(shared_ptr<CoreCamera> camera)
+void CoreRenderer::SetCamera(shared_ptr<CoreCamera> camera)
 {
 	mCamera = camera;
 }
 
-void CoreDrawer::Init()
+void CoreRenderer::Init()
 {
 	ID3D11Device			*device = mCoreDevice->GetDevice();
 	ID3D11DeviceContext		*context = mCoreDevice->GetDeviceContext();
@@ -100,7 +100,7 @@ void CoreDrawer::Init()
 }
 
 
-void CoreDrawer::Draw()
+void CoreRenderer::Render()
 {
 
 
@@ -177,7 +177,7 @@ void CoreDrawer::Draw()
 	}
 }
 
-void CoreDrawer::ScreenShot()
+void CoreRenderer::ScreenShot()
 {
 	ID3D11Device			*device = mCoreDevice->GetDevice();
 	ID3D11DeviceContext		*context = mCoreDevice->GetDeviceContext();

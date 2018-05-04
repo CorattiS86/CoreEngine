@@ -8,16 +8,16 @@
 using namespace std;
 using namespace DirectX;
 
-class CoreDrawer
+class CoreRenderer
 {
 public:
-	CoreDrawer(shared_ptr<CoreDevice> coreDevice);
-	~CoreDrawer();
+	CoreRenderer(shared_ptr<CoreDevice> coreDevice);
+	~CoreRenderer();
 
 	void SetRenderable(CoreRenderable *renderable);
 	void SetCamera(shared_ptr<CoreCamera> camera);
 	void Init();
-	void Draw();
+	void Render();
 	void ScreenShot();
 
 private:
