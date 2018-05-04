@@ -1,7 +1,11 @@
 // A constant buffer that stores the three basic column-major matrices for composing geometry.
 cbuffer constantBufferPerObject : register(b0)
 {
-	matrix world;
+    matrix world;
+}
+
+cbuffer constantBufferPerFrame : register(b1)
+{
 	matrix view;
 	matrix projection;
 };
@@ -16,7 +20,7 @@ struct VertexShaderInput
 };
 
 // Per-pixel color data passed through the pixel shader.
-struct PixelShaderInput
+struct VertexShaderOutput
 {
 	float4 posWVP	: SV_POSITION;
 	float3 posW		: POSITION0;
@@ -26,9 +30,9 @@ struct PixelShaderInput
 };
 
 // Simple shader to do vertex processing on the GPU.
-PixelShaderInput main(VertexShaderInput input)
+VertexShaderOutput main(VertexShaderInput input)
 {
-	PixelShaderInput output;
+    VertexShaderOutput output;
 	 
     // Transform the vertex position into projected space.
 	{
