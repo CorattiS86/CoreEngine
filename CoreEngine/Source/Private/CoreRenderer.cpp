@@ -191,6 +191,7 @@ void CoreRenderer::RenderAll(vector<CoreRenderable> renderables)
 
 	float teal[] = { 0.098f, 0.439f, 0.439f, 1.0f };
 	float orange[] = { 1.0f, 0.50f, 0.01f, 1.0f };
+	float gray[] = { 0.3f, 0.3f, 0.3f, 1.0f };
 
 	//================================================================
 	// SETTING RESOURCES
@@ -203,7 +204,7 @@ void CoreRenderer::RenderAll(vector<CoreRenderable> renderables)
 
 	context->ClearRenderTargetView(
 		rtv,
-		orange
+		gray
 	);
 
 	context->ClearDepthStencilView(
