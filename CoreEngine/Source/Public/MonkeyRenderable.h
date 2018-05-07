@@ -20,31 +20,26 @@ public:
 	MonkeyBuilder(shared_ptr<CoreDevice> coreDevice)
 		: mCoreDevice(coreDevice) 
 	{ 
+		Init();
 	}
 
-	void Init();
-
 private:
+	void Init();
 	void LoadShaders();
 	void LoadObject(const char * filename);
 	void LoadTexture(const wchar_t * filename);
 	void LoadGPUResource();
 	void LoadState();
 
-
 private:
+
 	shared_ptr<CoreDevice> mCoreDevice;
-public:
-	ID3D11Device*			getDevice()		{ return mCoreDevice->GetDevice();			}
-	ID3D11DeviceContext*	getContext()	{ return mCoreDevice->GetDeviceContext();	}
 };
 
 
 
 void MonkeyBuilder::Init()
 {
-	
-
 	LoadShaders();
 
 	LoadObject("Resources/MonkeySmooth.obj");
@@ -56,44 +51,51 @@ void MonkeyBuilder::Init()
 	LoadState();
 
 }
-/*
-void MonkeyBuilder::Init()
-{
 
-	auto CreateShadersTask = Concurrency::create_task(
-		[this]()
-	{
-		CreateShaders();
-	}
-	);
+//void MonkeyBuilder::Init()
+//{
+//
+//	auto LoadShadersTask = Concurrency::create_task(
+//		[this]()
+//	{
+//		LoadShaders();
+//	}
+//	);
+//
+//	auto LoadObjectTask = Concurrency::create_task(
+//		[this]()
+//	{
+//		LoadObject("Resources/MonkeySmooth.obj");
+//	}
+//	);
+//
+//	auto LoadTextureTask = Concurrency::create_task(
+//		[this]()
+//	{
+//		LoadTexture(L"Resources/MonkeyDiffuse.dds");
+//	}
+//	);
+//
+//	auto LoadGPUResourceTask = Concurrency::create_task(
+//		[this]()
+//	{
+//		LoadGPUResource();
+//	}
+//	);
+//
+//	auto LoadStateTask = Concurrency::create_task(
+//		[this]()
+//	{
+//		LoadState();
+//	}
+//	);
+//
+//
+//}
 
-	auto LoadObjectTask = Concurrency::create_task(
-		[this]()
-	{
-		LoadObject("Resources/MonkeySmooth.obj");
-	}
-	);
-
-	auto LoadTextureTask = Concurrency::create_task(
-		[this]()
-	{
-		
-		CreateDDSTextureFromFile(
-			this->getDevice(),
-			this->getContext(),
-			L"Resources/MonkeyDiffuse.dds",
-			(ID3D11Resource**)_SRV.GetAddressOf(),
-			_SRV.GetAddressOf()
-		);
-
-
-	}
-	);
-}
-*/
 void MonkeyBuilder::LoadShaders()
 {
-	ID3D11Device* device = getDevice();
+	ID3D11Device		 *device = mCoreDevice->GetDevice();
 
 	// You'll need to use a file loader to load the shader bytecode. In this
 	// example, we just use the standard library.
@@ -158,14 +160,14 @@ void MonkeyBuilder::LoadShaders()
 		delete bytes;
 
 	CD3D11_BUFFER_DESC cbDesc(
-		sizeof(WorldViewProjection),
+		sizeof(XMFLOAT4X4),
 		D3D11_BIND_CONSTANT_BUFFER
 	);
 
 	HR(device->CreateBuffer(
 		&cbDesc,
 		nullptr,
-		&_ConstantBuffer
+		&_WorldConstantBuffer
 	));
 
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -190,7 +192,7 @@ void MonkeyBuilder::LoadShaders()
 
 void MonkeyBuilder::LoadObject(const char * filename)
 {
-	ID3D11Device * device = getDevice();
+	ID3D11Device		 *device = mCoreDevice->GetDevice();
 
 	Object obj;
 	obj.LoadTexObjectFromFile(filename);
@@ -221,14 +223,22 @@ void MonkeyBuilder::LoadObject(const char * filename)
 	_Offset = 0;
 
 	_PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	XMStoreFloat4x4(
+		&_WorldCoordinatesMatrix,
+		XMMatrixIdentity()
+	);
 }
 
 void MonkeyBuilder::LoadTexture(const wchar_t * filename)
 {
+	ID3D11Device		 *device = mCoreDevice->GetDevice();
+	ID3D11DeviceContext	 *context = mCoreDevice->GetDeviceContext();
+
 	ComPtr<ID3D11Texture2D> texture;
 	CreateDDSTextureFromFile(
-		this->getDevice(),
-		this->getContext(),
+		device,
+		context,
 		filename,
 		(ID3D11Resource**)texture.GetAddressOf(),
 		_SRV.GetAddressOf()
@@ -251,9 +261,9 @@ void MonkeyBuilder::LoadGPUResource()
 
 void MonkeyBuilder::LoadState()
 {
-	ID3D11Device* device = mCoreDevice->GetDevice();
-	ID3D11DeviceContext* context = mCoreDevice->GetDeviceContext();
-
+	ID3D11Device		 *device = mCoreDevice->GetDevice();
+	ID3D11DeviceContext	 *context = mCoreDevice->GetDeviceContext();
+	
 	D3D11_RASTERIZER_DESC rsDesc;
 
 	//ZeroMemory(&rsDesc, sizeof(D3D11_RASTERIZER_DESC));

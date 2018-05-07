@@ -1,6 +1,7 @@
 #ifndef CORE_UTILS
 #define CORE_UTILS
 
+#include "dxerr.h"
 
 #if (defined CORE_DEBUG) 
 	#define COMMA ,
@@ -19,6 +20,17 @@
 #endif
 
 
-#define HR(x) if( x < 0) { OutputDebugStringA("\n"); OutputDebugStringA("FAILURE: "); OutputDebugStringA("\n"); return; }
+
+
+
+#define HR(x)														\
+{																	\
+	HRESULT hr = (x);												\
+	if (FAILED(hr)) 												\
+	{																\
+		DXTrace( TEXT(__FILE__), (DWORD)__LINE__, hr, L#x, TRUE);	\
+	}																\
+																	\
+}													  
 
 #endif // !CORE_UTILS

@@ -24,6 +24,9 @@ void CoreRenderer::SetCamera(shared_ptr<CoreCamera> camera)
 
 void CoreRenderer::Init()
 {
+	if (!mRenderable)
+		return;
+
 	ID3D11Device			*device = mCoreDevice->GetDevice();
 	ID3D11DeviceContext		*context = mCoreDevice->GetDeviceContext();
 
@@ -102,9 +105,10 @@ void CoreRenderer::Init()
 
 void CoreRenderer::Render()
 {
+	if (!mRenderable)
+		return;
 
-
-	ID3D11Device			*device	 = mCoreDevice->GetDevice();
+	ID3D11Device			*device = mCoreDevice->GetDevice();
 	ID3D11DeviceContext		*context = mCoreDevice->GetDeviceContext();
 
 	context->ClearRenderTargetView(
@@ -119,7 +123,7 @@ void CoreRenderer::Render()
 		0
 	);
 
-	ID3D11RenderTargetView* renderTargets[1] = {mRenderable->getRenderTargetViews() };
+	ID3D11RenderTargetView* renderTargets[1] = { mRenderable->getRenderTargetViews() };
 
 	context->OMSetRenderTargets(
 		1,
@@ -129,37 +133,40 @@ void CoreRenderer::Render()
 
 
 	//================================================================
-	// UPDATE WORLD-VIEW-PROJECTION MATRICES
+	// UPDATE WORLD and VIEW-PROJECTION MATRICES
 	//================================================================
-	static float the_time = 0.0f;
-	the_time += 3.14f / 180;
-	if (the_time >= 3.14 * 2)
-		the_time = 0.0f;
+	{
 
-	mRenderable->ResetCoordinates();
-	mRenderable->RotateCoordinates(-the_time, -the_time, -the_time);
+		static float the_time = 0.0f;
+		the_time += 3.14f / 180;
+		if (the_time >= 3.14 * 2)
+			the_time = 0.0f;
 
-	
-	context->UpdateSubresource(
-		mRenderable->getConstantBuffer(),
-		0,
-		nullptr,
-		&mRenderable->getWorldViewProjection(),
-		0,
-		0
-	);
-
-	ID3D11Buffer* constantBuffers[1] = { mRenderable->getConstantBuffer() };
-
-	context->VSSetConstantBuffers(
-		0,
-		1,
-		constantBuffers
-	);
+		mRenderable->ResetCoordinates();
+		mRenderable->RotateCoordinates(-the_time, -the_time, -the_time);
 
 
-	//////////////////////////////////////////////////
+		context->UpdateSubresource(
+			mRenderable->getWorldConstantBuffer(),
+			0,
+			nullptr,
+			mRenderable->getWorldCoordinatesMatrix(),
+			0,
+			0
+		);
 
+		ID3D11Buffer* constantBuffers[1] = { mRenderable->getWorldConstantBuffer() };
+
+		context->VSSetConstantBuffers(
+			0,
+			1,
+			constantBuffers
+		);
+	}
+
+	//================================================================
+	// DRAWING OPERATIONS
+	//================================================================
 	if (mRenderable->getIsWithIndices())
 	{
 		context->DrawIndexed(
@@ -339,15 +346,15 @@ void CoreRenderer::ScreenShot()
 
 
 	context->UpdateSubresource(
-		mRenderable->getConstantBuffer(),
+		mRenderable->getWorldConstantBuffer(),
 		0,
 		nullptr,
-		&mRenderable->getWorldViewProjection(),
+		mRenderable->getWorldCoordinatesMatrix(),
 		0,
 		0
 	);
 
-	ID3D11Buffer* constantBuffers[1] = { mRenderable->getConstantBuffer() };
+	ID3D11Buffer* constantBuffers[1] = { mRenderable->getWorldConstantBuffer() };
 
 	context->VSSetConstantBuffers(
 		0,

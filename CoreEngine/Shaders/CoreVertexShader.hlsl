@@ -2,14 +2,12 @@
 cbuffer constantBufferPerObject : register(b0)
 {
     matrix world;
-    matrix view;
-    matrix projection;
 }
 
 cbuffer constantBufferPerFrame : register(b1)
 {
-    //matrix view;
-    //matrix projection;
+    matrix view;
+    matrix projection;
 };
 
 // Per-vertex data used as input to the vertex shader.

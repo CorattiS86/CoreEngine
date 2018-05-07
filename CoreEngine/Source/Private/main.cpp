@@ -69,43 +69,22 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		LOG("INFO: CoreRenderer instantiated !!! \n")
 		
-		//coreRenderer->CreateDeviceDependentResources();
-		//coreRenderer->CreateGraphicalResources();
-
 		// We have a window, so initialize window size-dependent resources.
 		hr = coreDevice->CreateWindowResources(coreWindow->GetWindowHandle());
-		//coreRenderer->CreateWindowSizeDependentResources();
 
 		// Go full-screen.
 		//hr = coreDevice->GoFullScreen();
 
-		// Whoops! We resized the "window" when we went full-screen. Better
-		// tell the renderer.
-		//coreRenderer->CreateWindowSizeDependentResources();
-
-		// Run the program.
-		//coreRenderer->SetStates();
-
-		shared_ptr<CoreCamera> coreCamera = shared_ptr<CoreCamera>(new CoreCamera());
-		coreCamera->setUp (0.0f, 1.0f, 0.0f);
-		coreCamera->setEye(0.0f, 0.0f, 5.0f);
-		coreCamera->setAt (0.0f, 0.0f, 0.0f);
+		shared_ptr<CoreCamera> coreCamera = shared_ptr<CoreCamera>(new CoreCamera(coreDevice));
+		coreCamera->setUpDirection(0.0f, 1.0f, 0.0f);
+		coreCamera->setEyePosition(0.0f, 0.0f, 5.0f);
+		coreCamera->setLookAt(0.0f, 0.0f, 0.0f);
+		coreCamera->setPerspectiveProjection(coreDevice->GetAspectRatio());
 
 
 		MonkeyBuilder builder(coreDevice);
-		builder.Init();
-
 		CoreRenderable * Monkey = builder.buildRenderable();
-		Monkey->ResetCoordinates();
 		
-		XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
-		XMVECTOR eye = XMVectorSet(0.0f, 3.0f, 3.0f, 0.f);
-		XMVECTOR at = XMVectorSet(0.0f, 0.0f, 0.0f, 0.f);
-
-		Monkey->SetEyePosition(up, eye, at);
-
-		Monkey->SetPerspectiveProjection(coreDevice->GetAspectRatio());
-		//Monkey->SetOrthographicProjection();
 
 		coreRenderer->SetRenderable(Monkey);
 		coreRenderer->SetCamera(coreCamera);
@@ -113,7 +92,7 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		coreRenderer->Init();
 
 
-		hr = coreWindow->Run(coreDevice, coreRenderer);
+		hr = coreWindow->Run(coreDevice, coreRenderer, coreCamera);
 
 	}
 

@@ -1,10 +1,14 @@
 #include "CoreCamera.h"
+#include <d3d11.h>
+#include "CoreUtils.h"
 
-CoreCamera::CoreCamera()
-	: up (XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f))
-	, eye(XMVectorSet(0.0f, 0.0f, 5.0f, 0.0f))
-	, at (XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f))
+CoreCamera::CoreCamera(shared_ptr<CoreDevice> coreDevice)
+	: mCoreDevice(coreDevice)
+	, mUpDirection (0.0f, 1.0f, 0.0f)
+	, mEyePosition (0.0f, 1.0f, 5.0f)
+	, mLookAt      (0.0f, 0.0f, 0.0f)
 {
+	Init();	
 }
 
 CoreCamera::~CoreCamera()
@@ -12,45 +16,224 @@ CoreCamera::~CoreCamera()
 	
 }
 
-void CoreCamera::setUp(float x, float y, float z)
+void CoreCamera::Init()
 {
-	up = XMVectorSet(x, y, z, 0.0f);
-}
-
-void CoreCamera::setEye(float x, float y, float z)
-{
-	eye = XMVectorSet(x, y, z, 0.0f);
-}
-
-void CoreCamera::setAt(float x, float y, float z)
-{
-	at = XMVectorSet(x, y, z, 0.0f);
-}
-
-XMFLOAT4X4* CoreCamera::getView()
-{
-	XMFLOAT4X4 *view = new XMFLOAT4X4();
+	ZeroMemory(&mViewProjection, sizeof(mViewProjection));
 
 	XMStoreFloat4x4(
-		view,
+		&mViewProjection.view,
 		XMMatrixTranspose(
 			XMMatrixLookAtRH(
-				eye,
-				at,
-				up
+				XMLoadFloat3(&mEyePosition),
+				XMLoadFloat3(&mLookAt),
+				XMLoadFloat3(&mUpDirection)
 			)
 		)
 	);
 
-	return view;
+	XMStoreFloat4x4(
+		&mViewProjection.projection,
+		XMMatrixTranspose(
+			XMMatrixPerspectiveFovRH(
+				XMConvertToRadians(70),
+				(4.0f / 3.0f),
+				0.01f,
+				100.0f
+			)
+		)
+	);
+
+	ID3D11Device		 *device  = mCoreDevice->GetDevice();
+	ID3D11DeviceContext	 *context = mCoreDevice->GetDeviceContext();
+
+	
+	CD3D11_BUFFER_DESC cbDesc(
+		sizeof(mViewProjection),
+		D3D11_BIND_CONSTANT_BUFFER
+	);
+
+	HR(device->CreateBuffer(
+		&cbDesc,
+		nullptr,
+		mViewProjectionConstantBuffer.GetAddressOf()
+	));
+
+	context->UpdateSubresource(
+		mViewProjectionConstantBuffer.Get(),
+		0,
+		nullptr,
+		&mViewProjection,
+		0,
+		0
+	);
+
+	context->VSSetConstantBuffers(
+		1,
+		1,
+		mViewProjectionConstantBuffer.GetAddressOf()
+	);
+
+	XMFLOAT4 mEyePositionPadded(
+		mEyePosition.x,
+		mEyePosition.y,
+		mEyePosition.z,
+		0.0f
+	);
+
+	CD3D11_BUFFER_DESC cbDesc2(
+		sizeof(mEyePositionPadded),
+		D3D11_BIND_CONSTANT_BUFFER
+	);
+
+	HR(device->CreateBuffer(
+		&cbDesc2,
+		nullptr,
+		mEyePositionConstantBuffer.GetAddressOf()
+	));
+
+	context->UpdateSubresource(
+		mEyePositionConstantBuffer.Get(),
+		0,
+		nullptr,
+		&mEyePositionPadded,
+		0,
+		0
+	);
+
+	context->PSSetConstantBuffers(
+		0,
+		1,
+		mEyePositionConstantBuffer.GetAddressOf()
+	);
 }
 
-XMFLOAT4X4 * CoreCamera::getPerspectiveProjection(float aspectRatio)
+void CoreCamera::setUpDirection(float x, float y, float z)
 {
-	XMFLOAT4X4 *projection = new XMFLOAT4X4();
+	mUpDirection = XMFLOAT3(x, y, z);
 
 	XMStoreFloat4x4(
-		projection,
+		&mViewProjection.view,
+		XMMatrixTranspose(
+			XMMatrixLookAtRH(
+				XMLoadFloat3(&mEyePosition),
+				XMLoadFloat3(&mLookAt),
+				XMLoadFloat3(&mUpDirection)
+			)
+		)
+	);
+
+	ID3D11DeviceContext *context = mCoreDevice->GetDeviceContext();
+
+	context->UpdateSubresource(
+		mViewProjectionConstantBuffer.Get(),
+		0,
+		nullptr,
+		&mViewProjection,
+		0,
+		0
+	);
+
+	context->VSSetConstantBuffers(
+		1,
+		1,
+		mViewProjectionConstantBuffer.GetAddressOf()
+	);
+}
+
+void CoreCamera::setEyePosition(float x, float y, float z)
+{
+	mEyePosition = XMFLOAT3(x, y, z);
+	
+	XMStoreFloat4x4(
+		&mViewProjection.view,
+		XMMatrixTranspose(
+			XMMatrixLookAtRH(
+				XMLoadFloat3(&mEyePosition),
+				XMLoadFloat3(&mLookAt),
+				XMLoadFloat3(&mUpDirection)
+			)
+		)
+	);
+
+	ID3D11DeviceContext *context = mCoreDevice->GetDeviceContext();
+
+	context->UpdateSubresource(
+		mViewProjectionConstantBuffer.Get(),
+		0,
+		nullptr,
+		&mViewProjection,
+		0,
+		0
+	);
+
+	context->VSSetConstantBuffers(
+		1,
+		1,
+		mViewProjectionConstantBuffer.GetAddressOf()
+	);
+
+	XMFLOAT4 mEyePositionPadded(
+		mEyePosition.x,
+		mEyePosition.y,
+		mEyePosition.z,
+		0.0f
+	);
+
+	context->UpdateSubresource(
+		mEyePositionConstantBuffer.Get(),
+		0,
+		nullptr,
+		&mEyePositionPadded,
+		0,
+		0
+	);
+	context->PSSetConstantBuffers(
+		0,
+		1,
+		mEyePositionConstantBuffer.GetAddressOf()
+	);
+
+}
+
+void CoreCamera::setLookAt(float x, float y, float z)
+{
+	mLookAt = XMFLOAT3(x, y, z);
+
+	XMStoreFloat4x4(
+		&mViewProjection.view,
+		XMMatrixTranspose(
+			XMMatrixLookAtRH(
+				XMLoadFloat3(&mEyePosition),
+				XMLoadFloat3(&mLookAt),
+				XMLoadFloat3(&mUpDirection)
+			)
+		)
+	);
+
+	ID3D11DeviceContext *context = mCoreDevice->GetDeviceContext();
+
+	context->UpdateSubresource(
+		mViewProjectionConstantBuffer.Get(),
+		0,
+		nullptr,
+		&mViewProjection,
+		0,
+		0
+	);
+
+	context->VSSetConstantBuffers(
+		1,
+		1,
+		mViewProjectionConstantBuffer.GetAddressOf()
+	);
+}
+
+
+
+void CoreCamera::setPerspectiveProjection(float aspectRatio)
+{
+	XMStoreFloat4x4(
+		&mViewProjection.projection,
 		XMMatrixTranspose(
 			XMMatrixPerspectiveFovRH(
 				XMConvertToRadians(70),
@@ -61,15 +244,28 @@ XMFLOAT4X4 * CoreCamera::getPerspectiveProjection(float aspectRatio)
 		)
 	);
 
-	return projection;
+	ID3D11DeviceContext *context = mCoreDevice->GetDeviceContext();
+
+	context->UpdateSubresource(
+		mViewProjectionConstantBuffer.Get(),
+		0,
+		nullptr,
+		&mViewProjection,
+		0,
+		0
+	);
+
+	context->VSSetConstantBuffers(
+		1,
+		1,
+		mViewProjectionConstantBuffer.GetAddressOf()
+	);
 }
 
-XMFLOAT4X4 * CoreCamera::getOrthographicProjection()
+void CoreCamera::setOrthographicProjection()
 {
-	XMFLOAT4X4 *projection = new XMFLOAT4X4();
-
 	XMStoreFloat4x4(
-		projection,
+		&mViewProjection.projection,
 		XMMatrixTranspose(
 			XMMatrixOrthographicRH(
 				5.0f,
@@ -80,5 +276,20 @@ XMFLOAT4X4 * CoreCamera::getOrthographicProjection()
 		)
 	);
 
-	return projection;
+	ID3D11DeviceContext *context = mCoreDevice->GetDeviceContext();
+
+	context->UpdateSubresource(
+		mViewProjectionConstantBuffer.Get(),
+		0,
+		nullptr,
+		&mViewProjection,
+		0,
+		0
+	);
+
+	context->VSSetConstantBuffers(
+		1,
+		1,
+		mViewProjectionConstantBuffer.GetAddressOf()
+	);
 }

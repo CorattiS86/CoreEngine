@@ -18,22 +18,14 @@ class CoreRenderable
 	CoreRenderable() { } //class can not be directly instantiated from the client code
 	CoreRenderable(const CoreRenderable & r); // cannot be copied
 	CoreRenderable & operator= (const CoreRenderable & r); // cannot be copied
- 
-public:
-	
 
-	~CoreRenderable()
-	{
-	
-	}
+public:
+	virtual ~CoreRenderable() {	}
 
 	void ResetCoordinates();
 	void TranslateCoordinates(float axisX, float axisY, float axisZ);
 	void RotateCoordinates(float roll, float pitch, float yaw);
 	void ScaleCoordinates(float Sx, float Sy, float Sz);
-	void SetEyePosition(XMVECTOR up, XMVECTOR eye, XMVECTOR at);
-	void SetPerspectiveProjection(float aspectRatio);
-	void SetOrthographicProjection();
 
 	//================================================================
 	// GETTERs
@@ -99,12 +91,12 @@ public:
 		return mPrimitiveTopology;
 	}
 
-	ID3D11Buffer* getConstantBuffer() {
-		return mConstantBuffer;
+	ID3D11Buffer* getWorldConstantBuffer() {
+		return mWorldConstantBuffer;
 	}
 
-	WorldViewProjection getWorldViewProjection() {
-		return mWorldViewProjection;
+	XMFLOAT4X4* getWorldCoordinatesMatrix() {
+		return &mWorldCoordinatesMatrix;
 	}
 
 	ID3D11SamplerState* getSamplerState() {
@@ -184,12 +176,12 @@ private:
 		mPrimitiveTopology = primitiveTopology;
 	}
 
-	void setConstantBuffer(ID3D11Buffer* constantbuffer) {
-		mConstantBuffer = constantbuffer;
+	void setWorldConstantBuffer(ID3D11Buffer* constantbuffer) {
+		mWorldConstantBuffer = constantbuffer;
 	}
 
-	void setWorldViewProjection(WorldViewProjection worldViewProjection) {
-		mWorldViewProjection = worldViewProjection;
+	void setWorldCoordinatesMatrix(XMFLOAT4X4 worldCoordinatesMatrix) {
+		mWorldCoordinatesMatrix = worldCoordinatesMatrix;
 	}
 
 	void setSamplerState(ID3D11SamplerState* samplerState) {
@@ -219,8 +211,8 @@ private:
 	UINT								 mStride;
 	UINT								 mOffset;
 	D3D_PRIMITIVE_TOPOLOGY				 mPrimitiveTopology;
-	ID3D11Buffer						*mConstantBuffer;
-	WorldViewProjection					 mWorldViewProjection;
+	ID3D11Buffer						*mWorldConstantBuffer;
+	XMFLOAT4X4							 mWorldCoordinatesMatrix;	
 	ID3D11VertexShader					*mVertexShader;
 	ID3D11PixelShader					*mPixelShader;
 	ID3D11SamplerState					*mSamplerState;
@@ -311,13 +303,13 @@ public:
 		return *this;
 	}
 
-	CoreRenderableBuilder& buildConstantBuffer(ID3D11Buffer* constantbuffer) {
-		_ConstantBuffer = constantbuffer;
+	CoreRenderableBuilder& buildWorldConstantBuffer(ID3D11Buffer* constantbuffer) {
+		_WorldConstantBuffer = constantbuffer;
 		return *this;
 	}
 
-	CoreRenderableBuilder& buildWorldViewProjection(WorldViewProjection worldViewProjection) {
-		_WorldViewProjection = worldViewProjection;
+	CoreRenderableBuilder& buildViewProjection(XMFLOAT4X4 worldCoordinatesMatrix) {
+		_WorldCoordinatesMatrix = worldCoordinatesMatrix;
 	}
 
 	CoreRenderableBuilder& buildSamplerState(ID3D11SamplerState* samplerState) {
@@ -359,8 +351,8 @@ public:
 		_Renderable->setStride(_Stride);
 		_Renderable->setOffset(_Offset);
 		_Renderable->setPrimitiveTopology(_PrimitiveTopology);
-		_Renderable->setConstantBuffer(_ConstantBuffer.Get());
-		_Renderable->setWorldViewProjection(_WorldViewProjection);
+		_Renderable->setWorldConstantBuffer(_WorldConstantBuffer.Get());
+		_Renderable->setWorldCoordinatesMatrix(_WorldCoordinatesMatrix);
 		_Renderable->setSamplerState(_SamplerState.Get());
 		_Renderable->setVertexShader(_VertexShader.Get());
 		_Renderable->setPixelShader(_PixelShader.Get());
@@ -385,8 +377,8 @@ protected:
 	UINT								_Stride;
 	UINT								_Offset;
 	D3D_PRIMITIVE_TOPOLOGY				_PrimitiveTopology;
-	ComPtr<ID3D11Buffer>				_ConstantBuffer;
-	WorldViewProjection					_WorldViewProjection;
+	ComPtr<ID3D11Buffer>				_WorldConstantBuffer;
+	XMFLOAT4X4							_WorldCoordinatesMatrix;
 	ComPtr<ID3D11VertexShader>			_VertexShader;
 	ComPtr<ID3D11PixelShader>			_PixelShader;
 	ComPtr<ID3D11SamplerState>			_SamplerState;

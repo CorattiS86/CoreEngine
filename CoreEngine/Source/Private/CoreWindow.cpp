@@ -56,8 +56,8 @@ HRESULT CoreWindow::CreateDesktopWindow()
 		WS_OVERLAPPEDWINDOW,            // Window style
 		0,							    // X LeftUpperCorner Position //CW_USEDEFAULT
 		0,							    // Y LeftUpperCorner Position //CW_USEDEFAULT
-		500,							// Width  //CW_USEDEFAULT
-		500,							// Height //CW_USEDEFAULT
+		800,							// Width  //CW_USEDEFAULT
+		600,							// Height //CW_USEDEFAULT
 		NULL,							// Parent window    
 		NULL,							// Menu
 		core_hInstance,					// Instance handle
@@ -76,7 +76,9 @@ HRESULT CoreWindow::CreateDesktopWindow()
 
 HRESULT CoreWindow::Run(
 	std::shared_ptr<CoreDevice> coreDevice, 
-	std::shared_ptr<CoreRenderer> coreRenderer
+	std::shared_ptr<CoreRenderer> coreRenderer,
+	std::shared_ptr<CoreCamera> coreCamera
+	
 )
 {
 	HRESULT hr = S_OK;

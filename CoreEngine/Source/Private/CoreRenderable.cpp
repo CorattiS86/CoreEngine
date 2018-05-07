@@ -7,7 +7,7 @@ using namespace DirectX;
 void CoreRenderable::ResetCoordinates()
 {
 	XMStoreFloat4x4(
-		&mWorldViewProjection.world,
+		&mWorldCoordinatesMatrix,
 		XMMatrixIdentity()
 	);
 }
@@ -22,10 +22,10 @@ void CoreRenderable::TranslateCoordinates(float axisX, float axisY, float axisZ)
 		);
 
 	XMStoreFloat4x4(
-		&mWorldViewProjection.world,
+		&mWorldCoordinatesMatrix,
 		XMMatrixTranspose(
 			XMMatrixMultiply(
-				XMLoadFloat4x4(&mWorldViewProjection.world),
+				XMLoadFloat4x4(&mWorldCoordinatesMatrix),
 				translation
 			)
 		)
@@ -40,10 +40,10 @@ void CoreRenderable::RotateCoordinates(float roll, float pitch, float yaw)
 	XMMATRIX rotation = XMMatrixRotationRollPitchYawFromVector(VectorAngles);
 
 	XMStoreFloat4x4(
-		&mWorldViewProjection.world,
+		&mWorldCoordinatesMatrix,
 		XMMatrixTranspose(
 			XMMatrixMultiply(
-				XMLoadFloat4x4(&mWorldViewProjection.world),
+				XMLoadFloat4x4(&mWorldCoordinatesMatrix),
 				rotation
 			)
 		)
@@ -58,59 +58,13 @@ void CoreRenderable::ScaleCoordinates(float Sx, float Sy, float Sz)
 	XMMATRIX scale = XMMatrixScalingFromVector(VectorAngles);
 
 	XMStoreFloat4x4(
-		&mWorldViewProjection.world,
+		&mWorldCoordinatesMatrix,
 		XMMatrixTranspose(
 			XMMatrixMultiply(
-				XMLoadFloat4x4(&mWorldViewProjection.world),
+				XMLoadFloat4x4(&mWorldCoordinatesMatrix),
 				scale
 			)
 		)
 	);
 }
-
-void CoreRenderable::SetEyePosition(XMVECTOR up, XMVECTOR eye, XMVECTOR at)
-{
-	XMStoreFloat4x4(
-		&mWorldViewProjection.view,
-		XMMatrixTranspose(
-			XMMatrixLookAtRH(
-				eye,
-				at,
-				up
-			)
-		)
-	);
-}
-
-void CoreRenderable::SetPerspectiveProjection(float aspectRatio)
-{
-	XMStoreFloat4x4(
-		&mWorldViewProjection.projection,
-		XMMatrixTranspose(
-			XMMatrixPerspectiveFovRH(
-				XMConvertToRadians(70),
-				aspectRatio,
-				0.01f,
-				100.0f
-			)
-		)
-	);
-}
-
-void CoreRenderable::SetOrthographicProjection()
-{
-	XMStoreFloat4x4(
-		&mWorldViewProjection.projection,
-		XMMatrixTranspose(
-			XMMatrixOrthographicRH(
-				5.0f,
-				5.0f,
-				0.01f,
-				100.0f
-			)
-		)
-	);
-
-}
-
 

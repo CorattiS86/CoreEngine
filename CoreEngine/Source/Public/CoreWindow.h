@@ -25,7 +25,8 @@ public:
 
 	HRESULT Run(
 		shared_ptr<CoreDevice> coreDevice,
-		shared_ptr<CoreRenderer> coreRenderer
+		shared_ptr<CoreRenderer> coreRenderer,
+		shared_ptr<CoreCamera> coreCamera
 	);
 
 	static LRESULT CALLBACK CoreWindowProcedure(
