@@ -23,7 +23,8 @@
 #include "CoreRenderer.h"
 #include "CoreWindow.h"
 #include "CoreUtils.h"
-#include "MonkeyRenderable.h"
+#include "MonkeyBuilder.h"
+#include "PlaneBuilder.h"
 
 using namespace std;
 
@@ -77,22 +78,25 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		shared_ptr<CoreCamera> coreCamera = shared_ptr<CoreCamera>(new CoreCamera(coreDevice));
 		coreCamera->setUpDirection(0.0f, 1.0f, 0.0f);
-		coreCamera->setEyePosition(0.0f, 0.0f, 5.0f);
+		coreCamera->setEyePosition(0.0f, 20.0f, 20.0f);
 		coreCamera->setLookAt(0.0f, 0.0f, 0.0f);
 		coreCamera->setPerspectiveProjection(coreDevice->GetAspectRatio());
 
 
-		MonkeyBuilder builder(coreDevice);
-		CoreRenderable * Monkey = builder.buildRenderable();
+		MonkeyBuilder monkeyBuilder(coreDevice);
+		CoreRenderable * Monkey = monkeyBuilder.buildRenderable();
 		
+		PlaneBuilder planeBuilder(coreDevice);
+		CoreRenderable * Plane = planeBuilder.buildRenderable();
+		Plane->TranslateCoordinates(0.0f, -2.0f, 0.0f);
 
-		coreRenderer->SetRenderable(Monkey);
 		coreRenderer->SetCamera(coreCamera);
 
-		coreRenderer->Init();
+		vector<CoreRenderable>		mRenderables;
+		mRenderables.push_back(*Monkey);
+		mRenderables.push_back(*Plane);
 
-
-		hr = coreWindow->Run(coreDevice, coreRenderer, coreCamera);
+		hr = coreWindow->Run(coreDevice, coreRenderer, coreCamera, mRenderables);
 
 	}
 

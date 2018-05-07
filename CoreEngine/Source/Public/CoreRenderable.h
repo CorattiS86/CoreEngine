@@ -16,8 +16,6 @@ class CoreRenderable
 	friend CoreRenderableBuilder;
 
 	CoreRenderable() { } //class can not be directly instantiated from the client code
-	CoreRenderable(const CoreRenderable & r); // cannot be copied
-	CoreRenderable & operator= (const CoreRenderable & r); // cannot be copied
 
 public:
 	virtual ~CoreRenderable() {	}

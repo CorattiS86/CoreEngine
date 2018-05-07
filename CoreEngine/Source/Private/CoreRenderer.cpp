@@ -5,16 +5,11 @@
 CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	: mCoreDevice(coreDevice)
 {
+	
 }
 
 CoreRenderer::~CoreRenderer()
 {
-}
-
-void CoreRenderer::SetRenderable(CoreRenderable * renderable)
-{
-	// assign CoreRenderable pointer to unique_ptr<CoreRenderable>
-	mRenderable.reset(renderable);
 }
 
 void CoreRenderer::SetCamera(shared_ptr<CoreCamera> camera)
@@ -22,13 +17,18 @@ void CoreRenderer::SetCamera(shared_ptr<CoreCamera> camera)
 	mCamera = camera;
 }
 
-void CoreRenderer::Init()
+
+void CoreRenderer::Render(CoreRenderable *mRenderable)
 {
-	if (!mRenderable)
+	if ( mRenderable == nullptr)
 		return;
 
 	ID3D11Device			*device = mCoreDevice->GetDevice();
 	ID3D11DeviceContext		*context = mCoreDevice->GetDeviceContext();
+
+	//================================================================
+	// SETTING RESOURCES
+	//================================================================
 
 	context->RSSetViewports(
 		1,
@@ -99,17 +99,10 @@ void CoreRenderer::Init()
 			0
 		);
 	}
-	
-}
 
-
-void CoreRenderer::Render()
-{
-	if (!mRenderable)
-		return;
-
-	ID3D11Device			*device = mCoreDevice->GetDevice();
-	ID3D11DeviceContext		*context = mCoreDevice->GetDeviceContext();
+	//================================================================
+	// CLEAR, UPDATE & DRAW
+	//================================================================
 
 	context->ClearRenderTargetView(
 		mRenderable->getRenderTargetViews(),
@@ -137,13 +130,13 @@ void CoreRenderer::Render()
 	//================================================================
 	{
 
-		static float the_time = 0.0f;
+		/*static float the_time = 0.0f;
 		the_time += 3.14f / 180;
 		if (the_time >= 3.14 * 2)
 			the_time = 0.0f;
 
 		mRenderable->ResetCoordinates();
-		mRenderable->RotateCoordinates(-the_time, -the_time, -the_time);
+		mRenderable->RotateCoordinates(-the_time, -the_time, -the_time);*/
 
 
 		context->UpdateSubresource(
@@ -182,9 +175,176 @@ void CoreRenderer::Render()
 			0
 		);
 	}
+		
+
+	
 }
 
-void CoreRenderer::ScreenShot()
+void CoreRenderer::RenderAll(vector<CoreRenderable> renderables)
+{
+	ID3D11Device			*device = mCoreDevice->GetDevice();
+	ID3D11DeviceContext		*context = mCoreDevice->GetDeviceContext();
+
+	D3D11_VIEWPORT			 viewport = mCoreDevice->GetViewport();
+	ID3D11RenderTargetView   *rtv = mCoreDevice->GetRenderTargetView();
+	ID3D11DepthStencilView	 *dsv = mCoreDevice->GetDepthStencilView();
+
+	float teal[] = { 0.098f, 0.439f, 0.439f, 1.0f };
+	float orange[] = { 1.0f, 0.50f, 0.01f, 1.0f };
+
+	//================================================================
+	// SETTING RESOURCES
+	//================================================================
+
+	context->RSSetViewports(
+		1,
+		&viewport
+	);
+
+	context->ClearRenderTargetView(
+		rtv,
+		orange
+	);
+
+	context->ClearDepthStencilView(
+		dsv,
+		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+		1.0f,
+		0
+	);
+
+	ID3D11RenderTargetView* renderTargets[1] = { rtv };
+
+	context->OMSetRenderTargets(
+		1,
+		renderTargets,
+		dsv
+	);
+
+	for (auto renderable : renderables)
+	{
+		CoreRenderable	*mRenderable = &renderable;
+
+		// Set up the vertex shader stage.
+		context->VSSetShader(
+			mRenderable->getVertexShader(),
+			nullptr,
+			0
+		);
+
+		// Set up the pixel shader stage.
+		context->PSSetShader(
+			mRenderable->getPixelShader(),
+			nullptr,
+			0
+		);
+
+		ID3D11SamplerState* samplerStates[1] = { mRenderable->getSamplerState() };
+
+		context->PSSetSamplers(
+			0,
+			1,
+			samplerStates
+		);
+
+		// Set up the IA stage by setting the input topology and layout.
+		UINT stride = mRenderable->getStride();
+		UINT offset = mRenderable->getOffset();
+
+		context->IASetPrimitiveTopology(
+			D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+		);
+
+		ID3D11Buffer* vertexBuffers[1] = { mRenderable->getVertexBuffer() };
+
+		context->IASetVertexBuffers(
+			0,
+			1,
+			vertexBuffers,
+			&stride,
+			&offset
+		);
+
+		context->IASetInputLayout(
+			mRenderable->getInputLayout()
+		);
+
+		ID3D11ShaderResourceView* shaderResourceViews[1] = { mRenderable->getShaderResourceView() };
+
+		context->PSSetShaderResources(
+			0,
+			1,
+			shaderResourceViews
+		);
+
+		context->RSSetState(
+			mRenderable->getRasterizerState()
+		);
+
+		if (mRenderable->getIsWithIndices())
+		{
+			context->IASetIndexBuffer(
+				mRenderable->getIndexBuffer(),
+				DXGI_FORMAT_R16_UINT,
+				0
+			);
+		}
+
+		//================================================================
+		// UPDATE WORLD and VIEW-PROJECTION MATRICES
+		//================================================================
+		{
+
+			/*static float the_time = 0.0f;
+			the_time += 3.14f / 180;
+			if (the_time >= 3.14 * 2)
+			the_time = 0.0f;
+
+			mRenderable->ResetCoordinates();
+			mRenderable->RotateCoordinates(-the_time, -the_time, -the_time);*/
+
+
+			context->UpdateSubresource(
+				mRenderable->getWorldConstantBuffer(),
+				0,
+				nullptr,
+				mRenderable->getWorldCoordinatesMatrix(),
+				0,
+				0
+			);
+
+			ID3D11Buffer* constantBuffers[1] = { mRenderable->getWorldConstantBuffer() };
+
+			context->VSSetConstantBuffers(
+				0,
+				1,
+				constantBuffers
+			);
+		}
+
+		//================================================================
+		// DRAWING OPERATIONS
+		//================================================================
+		if (mRenderable->getIsWithIndices())
+		{
+			context->DrawIndexed(
+				mRenderable->getIndicesCount(),
+				0,
+				0
+			);
+		}
+		else
+		{
+			context->Draw(
+				mRenderable->getVerticesCount(),
+				0
+			);
+		}
+
+	}
+}
+
+void CoreRenderer::ScreenShot(CoreRenderable *mRenderable)
 {
 	ID3D11Device			*device = mCoreDevice->GetDevice();
 	ID3D11DeviceContext		*context = mCoreDevice->GetDeviceContext();

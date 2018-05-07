@@ -4,6 +4,7 @@
 #include "CoreDevice.h"
 #include "CoreRenderable.h"
 #include "CoreCamera.h"
+#include <vector>
 
 using namespace std;
 using namespace DirectX;
@@ -14,15 +15,15 @@ public:
 	CoreRenderer(shared_ptr<CoreDevice> coreDevice);
 	~CoreRenderer();
 
-	void SetRenderable(CoreRenderable *renderable);
 	void SetCamera(shared_ptr<CoreCamera> camera);
-	void Init();
-	void Render();
-	void ScreenShot();
+	void Render(CoreRenderable *mRenderable);
+	void RenderAll(vector<CoreRenderable> renderables);
+
+	void ScreenShot(CoreRenderable *mRenderable);
 
 private:
 	shared_ptr<CoreDevice>		mCoreDevice;
 
 	shared_ptr<CoreCamera>		mCamera;
-	unique_ptr<CoreRenderable>  mRenderable;
+	
 };

@@ -57,9 +57,6 @@
     <ClInclude Include="Source\Public\CoreRenderable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Public\MonkeyRenderable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Public\CoreCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -67,6 +64,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Public\dxerr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\PlaneBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\MonkeyBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\CoreApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

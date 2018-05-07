@@ -42,9 +42,9 @@ void MonkeyBuilder::Init()
 {
 	LoadShaders();
 
-	LoadObject("Resources/MonkeySmooth.obj");
+	LoadObject("Resources/Monkey/MonkeySmooth.obj");
 	
-	LoadTexture(L"Resources/MonkeyDiffuse.dds");
+	LoadTexture(L"Resources/Monkey/MonkeyDiffuse.dds");
 
 	LoadGPUResource();
 

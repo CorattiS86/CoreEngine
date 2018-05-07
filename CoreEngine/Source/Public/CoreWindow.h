@@ -26,7 +26,8 @@ public:
 	HRESULT Run(
 		shared_ptr<CoreDevice> coreDevice,
 		shared_ptr<CoreRenderer> coreRenderer,
-		shared_ptr<CoreCamera> coreCamera
+		shared_ptr<CoreCamera> coreCamera,
+		std::vector<CoreRenderable> renderables
 	);
 
 	static LRESULT CALLBACK CoreWindowProcedure(
@@ -46,6 +47,6 @@ private:
 	HINSTANCE core_hInstance;
 	
 	WNDCLASS  coreWindowClass;
-	WCHAR core_WindowClassName[MAX_LOADSTRING];                  // The title bar text
-	WCHAR core_WindowTitle[MAX_LOADSTRING];            // the main window class name
+	WCHAR	  core_WindowClassName[MAX_LOADSTRING];	// The title bar text
+	WCHAR     core_WindowTitle[MAX_LOADSTRING];     // the main window class name
 };

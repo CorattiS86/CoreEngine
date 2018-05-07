@@ -160,6 +160,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Public\CoreApp.h" />
     <ClInclude Include="Source\Public\CoreCamera.h" />
     <ClInclude Include="Source\Public\CoreCommon.h" />
     <ClInclude Include="Source\Public\CoreDevice.h" />
@@ -170,9 +171,10 @@
     <ClInclude Include="Source\Public\DDSTextureLoader.h" />
     <ClInclude Include="Source\Public\DirectXTex.h" />
     <ClInclude Include="Source\Public\dxerr.h" />
-    <ClInclude Include="Source\Public\MonkeyRenderable.h" />
+    <ClInclude Include="Source\Public\MonkeyBuilder.h" />
     <ClInclude Include="Source\Public\Object.h" />
     <ClInclude Include="Source\Public\CoreRenderable.h" />
+    <ClInclude Include="Source\Public\PlaneBuilder.h" />
     <ClInclude Include="Source\Public\Resource.h" />
     <ClInclude Include="Source\Public\ScreenGrab.h" />
     <ClInclude Include="Source\Public\stdafx.h" />

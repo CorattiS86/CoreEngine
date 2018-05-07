@@ -77,7 +77,8 @@ HRESULT CoreWindow::CreateDesktopWindow()
 HRESULT CoreWindow::Run(
 	std::shared_ptr<CoreDevice> coreDevice, 
 	std::shared_ptr<CoreRenderer> coreRenderer,
-	std::shared_ptr<CoreCamera> coreCamera
+	std::shared_ptr<CoreCamera> coreCamera,
+	std::vector<CoreRenderable> renderables
 	
 )
 {
@@ -107,7 +108,9 @@ HRESULT CoreWindow::Run(
 		else
 		{
 	
-			coreRenderer->Render();
+		 
+			coreRenderer->RenderAll(renderables);
+			 
 
 			coreDevice->Present();
 
