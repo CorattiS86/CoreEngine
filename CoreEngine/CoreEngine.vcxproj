@@ -177,6 +177,7 @@
     <ClInclude Include="Source\Public\PlaneBuilder.h" />
     <ClInclude Include="Source\Public\Resource.h" />
     <ClInclude Include="Source\Public\ScreenGrab.h" />
+    <ClInclude Include="Source\Public\ShadowMap.h" />
     <ClInclude Include="Source\Public\stdafx.h" />
     <ClInclude Include="Source\Public\targetver.h" />
   </ItemGroup>
@@ -192,6 +193,7 @@
     <ClCompile Include="Source\Private\main.cpp" />
     <ClCompile Include="Source\Private\Object.cpp" />
     <ClCompile Include="Source\Private\ScreenGrab.cpp" />
+    <ClCompile Include="Source\Private\ShadowMap.cpp" />
     <ClCompile Include="Source\Private\stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
