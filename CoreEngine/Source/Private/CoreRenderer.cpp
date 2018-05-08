@@ -1,6 +1,9 @@
 #include "CoreRenderer.h"
 #include "CoreUtils.h"
 #include "ScreenGrab.h"
+#include "ShadowMap.h"
+#include <d3d11.h>
+
 
 CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
 	: mCoreDevice(coreDevice)
@@ -180,7 +183,132 @@ void CoreRenderer::Render(CoreRenderable *mRenderable)
 	
 }
 
-void CoreRenderer::RenderAll(vector<CoreRenderable> renderables)
+void CoreRenderer::RenderScene(vector<CoreRenderable> renderables)
+{
+	ComputeShadowMap(renderables);
+	RenderObjects(renderables);
+}
+
+void CoreRenderer::ComputeShadowMap(vector<CoreRenderable> renderables)
+{
+	ID3D11Device			*device = mCoreDevice->GetDevice();
+	ID3D11DeviceContext		*context = mCoreDevice->GetDeviceContext();
+
+	unique_ptr<ShadowMap> shadowMap = unique_ptr<ShadowMap>(new ShadowMap(mCoreDevice, 800, 600));
+	mShadowMap = std::move(shadowMap);
+
+	//================================================================
+	// SETTING RESOURCES
+	//================================================================
+	mShadowMap->SetForScreenshot();
+	mShadowMap->BindDsvAndSetNullRenderTarget();
+	mShadowMap->Clear();
+	mShadowMap->SetPosition(5.0f, 0.0f, 0.0f);
+	mShadowMap->SetPerspectiveProjection(4.0f / 3.0f);
+
+	for (auto renderable : renderables)
+	{
+		CoreRenderable	*mRenderable = &renderable;
+
+		// Set up the vertex shader stage.
+		context->VSSetShader(
+			mRenderable->getVertexShader(),
+			nullptr,
+			0
+		);
+
+		// Set up the pixel shader stage.
+		context->PSSetShader(
+			mRenderable->getPixelShader(),
+			nullptr,
+			0
+		);
+
+		ID3D11SamplerState* samplerStates[1] = { mRenderable->getSamplerState() };
+
+		context->PSSetSamplers(
+			0,
+			1,
+			samplerStates
+		);
+
+		// Set up the IA stage by setting the input topology and layout.
+		UINT stride = mRenderable->getStride();
+		UINT offset = mRenderable->getOffset();
+
+		context->IASetPrimitiveTopology(
+			D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+		);
+
+		ID3D11Buffer* vertexBuffers[1] = { mRenderable->getVertexBuffer() };
+
+		context->IASetVertexBuffers(
+			0,
+			1,
+			vertexBuffers,
+			&stride,
+			&offset
+		);
+
+		context->IASetInputLayout(
+			mRenderable->getInputLayout()
+		);
+
+		context->RSSetState(
+			mRenderable->getRasterizerState()
+		);
+
+		if (mRenderable->getIsWithIndices())
+		{
+			context->IASetIndexBuffer(
+				mRenderable->getIndexBuffer(),
+				DXGI_FORMAT_R16_UINT,
+				0
+			);
+		}
+
+		//================================================================
+		// UPDATE WORLD and VIEW-PROJECTION MATRICES
+		//================================================================
+		{	
+
+			ID3D11Buffer* constantBuffers[2] = { 
+				mShadowMap->GetMatrixPositionBuffer(),
+				mShadowMap->GetViewProjBuffer()
+			};
+
+			context->VSSetConstantBuffers(
+				0,
+				2,
+				constantBuffers
+			);
+		}
+
+		//================================================================
+		// DRAWING OPERATIONS
+		//================================================================
+		if (mRenderable->getIsWithIndices())
+		{
+			context->DrawIndexed(
+				mRenderable->getIndicesCount(),
+				0,
+				0
+			);
+		}
+		else
+		{
+			context->Draw(
+				mRenderable->getVerticesCount(),
+				0
+			);
+		}
+
+
+		mShadowMap->Screenshot();
+	}
+}
+
+void CoreRenderer::RenderObjects(vector<CoreRenderable> renderables)
 {
 	ID3D11Device			*device = mCoreDevice->GetDevice();
 	ID3D11DeviceContext		*context = mCoreDevice->GetDeviceContext();
@@ -189,9 +317,9 @@ void CoreRenderer::RenderAll(vector<CoreRenderable> renderables)
 	ID3D11RenderTargetView   *rtv = mCoreDevice->GetRenderTargetView();
 	ID3D11DepthStencilView	 *dsv = mCoreDevice->GetDepthStencilView();
 
-	float teal[] = { 0.098f, 0.439f, 0.439f, 1.0f };
-	float orange[] = { 1.0f, 0.50f, 0.01f, 1.0f };
-	float gray[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+	float teal[]	= { 0.098f, 0.439f, 0.439f, 1.0f };
+	float orange[]	= { 1.0f, 0.50f, 0.01f, 1.0f };
+	float gray[]	= { 0.3f, 0.3f, 0.3f, 1.0f };
 
 	//================================================================
 	// SETTING RESOURCES
@@ -221,6 +349,7 @@ void CoreRenderer::RenderAll(vector<CoreRenderable> renderables)
 		renderTargets,
 		dsv
 	);
+
 
 	for (auto renderable : renderables)
 	{
@@ -295,16 +424,6 @@ void CoreRenderer::RenderAll(vector<CoreRenderable> renderables)
 		// UPDATE WORLD and VIEW-PROJECTION MATRICES
 		//================================================================
 		{
-
-			/*static float the_time = 0.0f;
-			the_time += 3.14f / 180;
-			if (the_time >= 3.14 * 2)
-			the_time = 0.0f;
-
-			mRenderable->ResetCoordinates();
-			mRenderable->RotateCoordinates(-the_time, -the_time, -the_time);*/
-
-
 			context->UpdateSubresource(
 				mRenderable->getWorldConstantBuffer(),
 				0,
@@ -313,16 +432,20 @@ void CoreRenderer::RenderAll(vector<CoreRenderable> renderables)
 				0,
 				0
 			);
-
-			ID3D11Buffer* constantBuffers[1] = { mRenderable->getWorldConstantBuffer() };
+			
+			ID3D11Buffer* constantBuffers[2] = { 
+				mRenderable->getWorldConstantBuffer(),
+				mCamera->getViewProjectionConstantBuffer()
+			};
 
 			context->VSSetConstantBuffers(
 				0,
-				1,
+				2,
 				constantBuffers
 			);
 		}
 
+		
 		//================================================================
 		// DRAWING OPERATIONS
 		//================================================================
@@ -343,6 +466,7 @@ void CoreRenderer::RenderAll(vector<CoreRenderable> renderables)
 		}
 
 	}
+
 }
 
 void CoreRenderer::ScreenShot(CoreRenderable *mRenderable)

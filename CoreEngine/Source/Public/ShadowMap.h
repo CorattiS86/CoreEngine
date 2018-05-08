@@ -1,6 +1,12 @@
 #pragma once
-
+#include <wrl.h>
 #include <d3d11.h>
+#include <memory>
+#include "CoreDevice.h"
+#include "CoreCommon.h"
+
+using namespace std;
+using namespace Microsoft::WRL;
 
 class ShadowMap
 {
@@ -8,18 +14,52 @@ class ShadowMap
 	ShadowMap& operator=(const ShadowMap& rhs);
 
 public:
-	ShadowMap(ID3D11Device* device, UINT width, UINT height);
+	ShadowMap(
+		shared_ptr<CoreDevice> coreDevice, 
+		UINT width, 
+		UINT height
+	);
+
 	~ShadowMap();
 
 	ID3D11ShaderResourceView* DepthMapSRV();
-	void BindDsvAndSetNullRenderTarget(ID3D11DeviceContext* dc);
+	void ResetCoordinates();
+	void SetPosition(float x, float y, float z);
+	void SetLookAt(float x, float y, float z);
+	void SetUpDirection(float x, float y, float z);
+
+	void SetPerspectiveProjection(float aspectRatio);
+	void SetOrthographicProjection();
+
+	void BindDsvAndSetNullRenderTarget();
+	void Clear();
+	void SetForScreenshot();
+	void Screenshot();
+
+
+	ID3D11Buffer*	GetMatrixPositionBuffer()	{ return mMatrixPositionBuffer.Get();	}
+	ID3D11Buffer*	GetViewProjBuffer()			{ return mLightViewProjBuffer.Get(); }
 
 private:
 
 	UINT mWidth;
 	UINT mHeight;
-	ID3D11ShaderResourceView* mDepthMapSRV;
-	ID3D11DepthStencilView* mDepthMapDSV;
+			
+	shared_ptr<CoreDevice>				mCoreDevice;
 
-	D3D11_VIEWPORT	mViewport
+	ComPtr<ID3D11ShaderResourceView>	mDepthMapSRV;
+	ComPtr<ID3D11DepthStencilView>		mDepthMapDSV;
+	ComPtr<ID3D11Texture2D>				mDepthMapTexture;
+
+	XMFLOAT4							mUpDirection;
+	XMFLOAT4							mLightPosition;
+	XMFLOAT4							mLookAt;
+
+	XMFLOAT4X4							mMatrixPosition;
+	ComPtr<ID3D11Buffer>				mMatrixPositionBuffer;
+
+	ViewProjection						mViewProjection;
+	ComPtr<ID3D11Buffer>				mLightViewProjBuffer;
+
+	D3D11_VIEWPORT						mViewport;
 };

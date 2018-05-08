@@ -109,7 +109,7 @@ HRESULT CoreWindow::Run(
 		{
 	
 		 
-			coreRenderer->RenderAll(renderables);
+			coreRenderer->RenderScene(renderables);
 			 
 
 			coreDevice->Present();

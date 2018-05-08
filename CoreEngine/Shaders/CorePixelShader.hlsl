@@ -3,6 +3,11 @@ cbuffer constantBufferPerFrame : register(b0)
 	float3 eyePosition; float empty;
 };
 
+cbuffer constantBufferProjection : register(b1)
+{
+    float4x4 worldViewProjTexture;
+}
+
 // Per-pixel color data passed through the pixel shader.
 struct PixelShaderInput
 {
@@ -54,13 +59,14 @@ SamplerState samplerAnisotropic : register(s1);
 texture2D diffuseMap : register(t0);
 texture2D secondMap  : register(t1);
 
-
+texture2D shadowMap : register(t3);
 
 
 // A pass-through function for the (interpolated) color data.
 float3 main(PixelShaderInput input) : SV_TARGET
 {
-	input.normal = normalize(input.normal);
+ 
+    input.normal = normalize(input.normal);
 
 	Material mat;
 
@@ -85,7 +91,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		float cos_LN = dot(l_Directional.lightDirection, input.normal.xyz);
 
 		float Kd = max(cos_LN, 0);
-		D += Kd * l_Directional.diffuseColor * mat.diffuseColor;
+		//D += Kd * l_Directional.diffuseColor * mat.diffuseColor;
 
 		[flatten]
 		if(cos_LN > 0.0f)
@@ -94,7 +100,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 			float3  R	= reflect(-l_Directional.lightDirection, input.normal.xyz); // reflect require the sign minus for direction
 			float	Ks  = pow(max(dot(R, V), 0), mat.specularPower);
 
-			S += Ks * l_Directional.specularColor * mat.specularColor;
+			//S += Ks * l_Directional.specularColor * mat.specularColor;
 		}
 	}
 	///////////////////////////////////////
@@ -104,8 +110,8 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		PointLight	l_Point;
 		l_Point.diffuseColor	= float3(1.0f, 1.0f, 1.0f);
 		l_Point.specularColor	= float3(1.0f, 1.0f, 1.0f);
-		l_Point.lightPosition	= float3(1.0f, 1.0f, -5.0f);
-		l_Point.range = 7.0f;
+		l_Point.lightPosition	= float3(1.0f, 3.0f, 0.0f);
+		l_Point.range = 17.0f;
 
 		float3 direction = normalize(
 			float3(	l_Point.lightPosition - input.posW )
@@ -131,6 +137,42 @@ float3 main(PixelShaderInput input) : SV_TARGET
 			//S += Ks * l_Point.specularColor * mat.specularColor;
 		}
 	}
+
+    // Computation for Point Light with Shadows
+	{
+        PointLight l_Point;
+        l_Point.diffuseColor = float3(1.0f, 1.0f, 1.0f);
+        l_Point.specularColor = float3(1.0f, 1.0f, 1.0f);
+        l_Point.lightPosition = float3(1.0f, 3.0f, 0.0f);
+        l_Point.range = 17.0f;
+
+        
+        float3 direction = normalize(
+			float3(l_Point.lightPosition - input.posW)
+		);
+
+        float cos_LN = dot(direction, input.normal.xyz);
+        float d = length(l_Point.lightPosition - float3(input.posW.x, input.posW.y, input.posW.z));
+
+        float Kd = 0.0f;
+
+        if (d < l_Point.range)
+            Kd = max(cos_LN, 0) / d;
+		
+		D += ( Kd * l_Point.diffuseColor * mat.diffuseColor);
+
+		[flatten]
+        if (cos_LN > 0.0f)
+        {
+            float3 V = normalize(eyePosition);
+            float3 R = reflect(-direction, input.normal.xyz); // reflect require the sign minus for direction
+            float Ks = pow(max(dot(R, V), 0), mat.specularPower) / d;
+
+		    S += Ks * l_Point.specularColor * mat.specularColor;
+        }
+    }
+
+
 
 	{
 		SpotLight	l_Spot;

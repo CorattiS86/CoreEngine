@@ -133,11 +133,6 @@ void CoreCamera::setUpDirection(float x, float y, float z)
 		0
 	);
 
-	context->VSSetConstantBuffers(
-		1,
-		1,
-		mViewProjectionConstantBuffer.GetAddressOf()
-	);
 }
 
 void CoreCamera::setEyePosition(float x, float y, float z)
@@ -166,17 +161,11 @@ void CoreCamera::setEyePosition(float x, float y, float z)
 		0
 	);
 
-	context->VSSetConstantBuffers(
-		1,
-		1,
-		mViewProjectionConstantBuffer.GetAddressOf()
-	);
-
 	XMFLOAT4 mEyePositionPadded(
 		mEyePosition.x,
 		mEyePosition.y,
 		mEyePosition.z,
-		0.0f
+		1.0f
 	);
 
 	context->UpdateSubresource(
@@ -220,12 +209,6 @@ void CoreCamera::setLookAt(float x, float y, float z)
 		0,
 		0
 	);
-
-	context->VSSetConstantBuffers(
-		1,
-		1,
-		mViewProjectionConstantBuffer.GetAddressOf()
-	);
 }
 
 
@@ -255,11 +238,6 @@ void CoreCamera::setPerspectiveProjection(float aspectRatio)
 		0
 	);
 
-	context->VSSetConstantBuffers(
-		1,
-		1,
-		mViewProjectionConstantBuffer.GetAddressOf()
-	);
 }
 
 void CoreCamera::setOrthographicProjection()
@@ -287,9 +265,4 @@ void CoreCamera::setOrthographicProjection()
 		0
 	);
 
-	context->VSSetConstantBuffers(
-		1,
-		1,
-		mViewProjectionConstantBuffer.GetAddressOf()
-	);
 }

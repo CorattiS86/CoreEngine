@@ -4,6 +4,7 @@
 #include "CoreDevice.h"
 #include "CoreRenderable.h"
 #include "CoreCamera.h"
+#include "ShadowMap.h"
 #include <vector>
 
 using namespace std;
@@ -17,13 +18,16 @@ public:
 
 	void SetCamera(shared_ptr<CoreCamera> camera);
 	void Render(CoreRenderable *mRenderable);
-	void RenderAll(vector<CoreRenderable> renderables);
+	void RenderScene(vector<CoreRenderable> renderables);
 
 	void ScreenShot(CoreRenderable *mRenderable);
 
 private:
+	void RenderObjects(vector<CoreRenderable> renderables);
+	void ComputeShadowMap(vector<CoreRenderable> renderables);
+
 	shared_ptr<CoreDevice>		mCoreDevice;
 
 	shared_ptr<CoreCamera>		mCamera;
-	
+	unique_ptr<ShadowMap>		mShadowMap;
 };
