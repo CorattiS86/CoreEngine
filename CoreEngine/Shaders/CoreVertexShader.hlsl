@@ -10,6 +10,11 @@ cbuffer constantBufferPerFrame : register(b1)
     matrix projection;
 };
 
+cbuffer constantBufferLight : register(b2)
+{
+    matrix lightWorldViewProjTexture;
+};
+
 // Per-vertex data used as input to the vertex shader.
 struct VertexShaderInput
 {
@@ -27,6 +32,7 @@ struct VertexShaderOutput
 	float4 normal	: NORMAL0;
 	float3 color	: COLOR0;
 	float2 texcoord : TEXCOORD0;
+    float4 Projtex  : TEXCOORD1;
 };
 
 // Simple shader to do vertex processing on the GPU.
@@ -43,6 +49,8 @@ VertexShaderOutput main(VertexShaderInput input)
 		pos = mul(pos, projection);
 
 		output.posWVP = pos;
+
+        output.Projtex = pos;
 	}
 
 	// Transform normal vector
@@ -63,6 +71,9 @@ VertexShaderOutput main(VertexShaderInput input)
 	}
 
 	output.texcoord = input.texcoord;
+
+    //output.Projtex = mul(float4(input.pos, 1.0f), lightWorldViewProjTexture);
+
 
 	// Pass the color through without modification.
 	output.color = input.color;

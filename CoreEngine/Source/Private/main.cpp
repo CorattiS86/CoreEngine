@@ -93,7 +93,7 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		coreRenderer->SetCamera(coreCamera);
 
 		vector<CoreRenderable>		mRenderables;
-		mRenderables.push_back(*Monkey);
+		//mRenderables.push_back(*Monkey);
 		mRenderables.push_back(*Plane);
 
 		hr = coreWindow->Run(coreDevice, coreRenderer, coreCamera, mRenderables);

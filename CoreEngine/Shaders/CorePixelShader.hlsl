@@ -16,6 +16,7 @@ struct PixelShaderInput
 	float4 normal	: NORMAL0;
 	float3 color	: COLOR0;
 	float2 texcoord : TEXCOORD0;
+    float4 Projtex  : TEXCOORD1;
 };
 
 struct DirectionalLight
@@ -57,23 +58,27 @@ SamplerState samplerAnisotropic : register(s1);
 
 
 texture2D diffuseMap : register(t0);
-texture2D secondMap  : register(t1);
-
-texture2D shadowMap : register(t3);
+texture2D shadowMap  : register(t1);
 
 
 // A pass-through function for the (interpolated) color data.
 float3 main(PixelShaderInput input) : SV_TARGET
 {
- 
+    input.Projtex.xyz /= input.Projtex.w;
+    float depth = input.Projtex.z;
+    
+    float3 c = shadowMap.Sample(samplerState, input.texcoord);
+    
+    //if (c.z > 0.1f)
+    //    return float3(1.0f, 0.0f, 0.0f);
+
     input.normal = normalize(input.normal);
 
 	Material mat;
-
+    
 	float3 diffuse1 = diffuseMap.Sample(samplerState, input.texcoord);
-	float3 diffuse2 = secondMap.Sample(samplerState, input.texcoord);
 
-	mat.diffuseColor = diffuse1;
+    mat.diffuseColor = c;
 	//mat.diffuseColor	= float3(input.color);
 	mat.specularColor	= float3(1.0f, 1.0f, 1.0f);
 	mat.specularPower	= 64;
@@ -91,7 +96,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
 		float cos_LN = dot(l_Directional.lightDirection, input.normal.xyz);
 
 		float Kd = max(cos_LN, 0);
-		//D += Kd * l_Directional.diffuseColor * mat.diffuseColor;
+		D += Kd * l_Directional.diffuseColor * mat.diffuseColor;
 
 		[flatten]
 		if(cos_LN > 0.0f)
@@ -159,7 +164,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
         if (d < l_Point.range)
             Kd = max(cos_LN, 0) / d;
 		
-		D += ( Kd * l_Point.diffuseColor * mat.diffuseColor);
+		//D += ( Kd * l_Point.diffuseColor * mat.diffuseColor);
 
 		[flatten]
         if (cos_LN > 0.0f)
@@ -168,7 +173,7 @@ float3 main(PixelShaderInput input) : SV_TARGET
             float3 R = reflect(-direction, input.normal.xyz); // reflect require the sign minus for direction
             float Ks = pow(max(dot(R, V), 0), mat.specularPower) / d;
 
-		    S += Ks * l_Point.specularColor * mat.specularColor;
+		    //S += Ks * l_Point.specularColor * mat.specularColor;
         }
     }
 

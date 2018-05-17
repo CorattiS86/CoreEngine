@@ -3,6 +3,7 @@
 #include "ScreenGrab.h"
 #include "ShadowMap.h"
 #include <d3d11.h>
+#include "DDSTextureLoader.h"
 
 
 CoreRenderer::CoreRenderer(shared_ptr<CoreDevice> coreDevice)
@@ -200,7 +201,9 @@ void CoreRenderer::ComputeShadowMap(vector<CoreRenderable> renderables)
 	//================================================================
 	// SETTING RESOURCES
 	//================================================================
-	mShadowMap->SetForScreenshot();
+	//mShadowMap->SetForScreenshot();
+	mShadowMap->LoadMapping();
+	
 	mShadowMap->BindDsvAndSetNullRenderTarget();
 	mShadowMap->Clear();
 	mShadowMap->SetPosition(5.0f, 0.0f, 0.0f);
@@ -304,7 +307,7 @@ void CoreRenderer::ComputeShadowMap(vector<CoreRenderable> renderables)
 		}
 
 
-		mShadowMap->Screenshot();
+		//mShadowMap->Screenshot();
 	}
 }
 
@@ -399,11 +402,16 @@ void CoreRenderer::RenderObjects(vector<CoreRenderable> renderables)
 			mRenderable->getInputLayout()
 		);
 
-		ID3D11ShaderResourceView* shaderResourceViews[1] = { mRenderable->getShaderResourceView() };
+		
+		ID3D11ShaderResourceView* shaderResourceViews[2] = { 
+			mRenderable->getShaderResourceView(),
+			//mShadowMap->DepthMapSRV() 
+			mShadowMap->PrecomputedDepthMapSRV()
+		};
 
 		context->PSSetShaderResources(
 			0,
-			1,
+			2,
 			shaderResourceViews
 		);
 

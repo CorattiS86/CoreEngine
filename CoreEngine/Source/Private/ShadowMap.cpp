@@ -2,6 +2,7 @@
 #include "CoreUtils.h"
 #include "ScreenGrab.h"
 #include <wrl.h>
+#include "DDSTextureLoader.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
@@ -115,6 +116,11 @@ ShadowMap::~ShadowMap()
 ID3D11ShaderResourceView * ShadowMap::DepthMapSRV()
 {
 	return mDepthMapSRV.Get();
+}
+
+ID3D11ShaderResourceView * ShadowMap::PrecomputedDepthMapSRV()
+{
+	return mPrecomputedDepthMapSRV.Get();
 }
 
 void ShadowMap::ResetCoordinates()
@@ -344,4 +350,19 @@ void ShadowMap::Screenshot()
 		mDepthMapTexture.Get(),
 		L"Snapshots/DepthTexture.dds"
 	);
+}
+
+void ShadowMap::LoadMapping()
+{
+	ID3D11Device		 *device = mCoreDevice->GetDevice();
+	ID3D11DeviceContext	 *context = mCoreDevice->GetDeviceContext();
+
+	ComPtr<ID3D11Texture2D> texture;
+	HR(CreateDDSTextureFromFile(
+		device,
+		context,
+		L"Snapshots/CubeDiffuse.dds",
+		(ID3D11Resource**)texture.GetAddressOf(),
+		mPrecomputedDepthMapSRV.GetAddressOf()
+	));
 }

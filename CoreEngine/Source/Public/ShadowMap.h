@@ -23,6 +23,7 @@ public:
 	~ShadowMap();
 
 	ID3D11ShaderResourceView* DepthMapSRV();
+	ID3D11ShaderResourceView* PrecomputedDepthMapSRV();
 	void ResetCoordinates();
 	void SetPosition(float x, float y, float z);
 	void SetLookAt(float x, float y, float z);
@@ -35,7 +36,7 @@ public:
 	void Clear();
 	void SetForScreenshot();
 	void Screenshot();
-
+	void LoadMapping();
 
 	ID3D11Buffer*	GetMatrixPositionBuffer()	{ return mMatrixPositionBuffer.Get();	}
 	ID3D11Buffer*	GetViewProjBuffer()			{ return mLightViewProjBuffer.Get(); }
@@ -47,6 +48,7 @@ private:
 			
 	shared_ptr<CoreDevice>				mCoreDevice;
 
+	ComPtr<ID3D11ShaderResourceView>	mPrecomputedDepthMapSRV;
 	ComPtr<ID3D11ShaderResourceView>	mDepthMapSRV;
 	ComPtr<ID3D11DepthStencilView>		mDepthMapDSV;
 	ComPtr<ID3D11Texture2D>				mDepthMapTexture;
