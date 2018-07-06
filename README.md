@@ -15,6 +15,8 @@ Actually it is able to:
 
 everything else is work in progress...
 
+(* most updated branch is _develop_)
+
 Author
 -----------------
 Coratti Stefano
